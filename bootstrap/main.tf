@@ -61,9 +61,9 @@ resource "aws_s3_bucket_versioning" "state" {
   }
 }
 
-# trivy:ignore:AVD-AWS-0132 -- the AWS-managed aws/s3 key is enough for a
-# single-operator state bucket; a customer-managed key adds $1/month and no
-# extra separation of duties here.
+# The AWS-managed aws/s3 key is enough for a single-operator state bucket; a
+# customer-managed key adds $1/month and no separation of duties here.
+#trivy:ignore:AWS-0132
 resource "aws_s3_bucket_server_side_encryption_configuration" "state" {
   bucket = aws_s3_bucket.state.id
 

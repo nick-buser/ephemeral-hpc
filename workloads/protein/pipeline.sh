@@ -3,6 +3,7 @@
 # embed, then train only if embedding succeeded (afterok dependency).
 # Usage: pipeline.sh [run-dir]   (default: $SCRATCH/protein-<timestamp>)
 set -euo pipefail
+# shellcheck source=/dev/null # installed by cloud-init from infra/templates/ehpc-profile.sh
 source /etc/profile.d/ehpc.sh
 run_dir="${1:-$SCRATCH/protein-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "$run_dir"

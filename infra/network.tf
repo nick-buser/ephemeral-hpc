@@ -72,8 +72,9 @@ resource "aws_vpc_security_group_ingress_rule" "intra_cluster" {
   description                  = "Any traffic between cluster nodes"
 }
 
-# trivy:ignore:AVD-AWS-0104 -- nodes install packages from Ubuntu, PyPI and
-# PyTorch mirrors at boot; there is no NAT or proxy to narrow egress through.
+# Nodes install packages from Ubuntu, PyPI and PyTorch mirrors at boot, and
+# there is no NAT or proxy to narrow egress through (docs/adr/0003-network.md).
+#trivy:ignore:AWS-0104
 resource "aws_vpc_security_group_egress_rule" "all" {
   security_group_id = aws_security_group.cluster.id
   cidr_ipv4         = "0.0.0.0/0"
@@ -111,8 +112,9 @@ resource "aws_flow_log" "vpc" {
   iam_role_arn         = aws_iam_role.flow_logs.arn
 }
 
-# trivy:ignore:AVD-AWS-0017 -- CloudWatch Logs encrypts at rest by default;
-# a customer-managed key is not worth $1/month for 7-day flow logs.
+# CloudWatch Logs encrypts at rest by default; a customer-managed key is not
+# worth $1/month for 7-day flow logs.
+#trivy:ignore:AWS-0017
 resource "aws_cloudwatch_log_group" "flow" {
   name              = "/${var.cluster_name}/vpc-flow"
   retention_in_days = 7

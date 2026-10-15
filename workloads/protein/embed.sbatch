@@ -8,6 +8,7 @@
 # Fetch the dataset once, then embed it with one task per node.
 # Override the node count at submit time: sbatch --nodes=1 embed.sbatch
 set -euo pipefail
+# shellcheck source=/dev/null # installed by cloud-init from infra/templates/ehpc-profile.sh
 source /etc/profile.d/ehpc.sh
 export SRUN_CPUS_PER_TASK="$SLURM_CPUS_PER_TASK" # srun does not inherit it from sbatch
 py="$EHPC_ENV/bin/python"
