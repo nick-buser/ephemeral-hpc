@@ -1,0 +1,45 @@
+#!/bin/bash
+# Compute node bring-up, run once by cloud-init after packages are installed.
+# Progress: /var/log/ehpc-init.log.
+set -euxo pipefail
+install -m 0600 /dev/null /var/log/ehpc-init.log
+exec > >(tee -a /var/log/ehpc-init.log) 2>&1
+
+region="${region}"
+param="${munge_param}"
+
+# 1. /shared from the head node; retried while the head is still booting.
+install -d /shared
+echo "head:/shared /shared nfs4 defaults,_netdev,nofail,noatime 0 0" >> /etc/fstab
+systemctl daemon-reload
+for _ in $(seq 60); do mount /shared && break; sleep 10; done
+mountpoint -q /shared
+
+# 2. Cluster key, published by this cluster's head node (named by its ID).
+snap wait system seed.loaded
+snap install aws-cli --classic
+set +x # never trace the key
+key=""
+for _ in $(seq 90); do
+  key=$(/snap/bin/aws --region "$region" ssm get-parameter --name "$param" \
+    --with-decryption --query Parameter.Value --output text 2>/dev/null) && break
+  sleep 10
+done
+[[ -n "$key" ]]
+umask 077
+base64 -d <<<"$key" > /etc/munge/munge.key
+unset key
+set -x
+chown munge:munge /etc/munge/munge.key
+chmod 0400 /etc/munge/munge.key
+systemctl restart munge
+
+# 3. slurmd in configless mode: slurm.conf comes from the controller.
+install -d -o slurm -g slurm /var/log/slurm /var/spool/slurmd
+systemctl enable slurmd
+for _ in $(seq 60); do
+  systemctl restart slurmd && sleep 5 && systemctl is-active --quiet slurmd && break
+  sleep 10
+done
+systemctl is-active --quiet slurmd
+echo "ehpc compute ready: $(date -Is)"

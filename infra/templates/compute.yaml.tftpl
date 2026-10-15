@@ -1,0 +1,27 @@
+#cloud-config
+hostname: ${node_name}
+preserve_hostname: false
+manage_etc_hosts: false
+package_update: true
+packages:
+  - munge
+  - slurmd
+  - slurm-client
+  - nfs-common
+write_files:
+  - path: /etc/hosts
+    encoding: b64
+    content: ${base64encode(hosts_file)}
+  - path: /etc/default/slurmd
+    encoding: b64
+    content: ${base64encode("SLURMD_OPTIONS=\"--conf-server head\"\n")}
+  - path: /etc/profile.d/ehpc.sh
+    encoding: b64
+    content: ${base64encode(profile_env)}
+  - path: /usr/local/sbin/ehpc-compute-init
+    permissions: "0700"
+    encoding: b64
+    content: ${base64encode(init_script)}
+runcmd:
+  - [shutdown, -h, "+${ttl_minutes}"]
+  - [/usr/local/sbin/ehpc-compute-init]

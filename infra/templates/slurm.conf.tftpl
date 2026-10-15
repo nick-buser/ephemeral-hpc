@@ -1,0 +1,37 @@
+# Rendered by Terraform (infra/compute.tf). Compute nodes fetch this from the
+# controller at start (configless mode), so this is the only copy.
+ClusterName=${cluster_name}
+SlurmctldHost=head(${head_ip})
+SlurmctldParameters=enable_configless
+SlurmUser=slurm
+
+AuthType=auth/munge
+CredType=cred/munge
+
+SlurmctldPidFile=/run/slurmctld/slurmctld.pid
+SlurmdPidFile=/run/slurm/slurmd.pid
+StateSaveLocation=/var/spool/slurmctld
+SlurmdSpoolDir=/var/spool/slurmd
+SlurmctldLogFile=/var/log/slurm/slurmctld.log
+SlurmdLogFile=/var/log/slurm/slurmd.log
+
+ProctrackType=proctrack/cgroup
+TaskPlugin=task/cgroup,task/affinity
+SchedulerType=sched/backfill
+SelectType=select/cons_tres
+SelectTypeParameters=CR_CPU_Memory
+DefMemPerCPU=${def_mem_per_cpu}
+ReturnToService=2
+SlurmdTimeout=120
+MpiDefault=none
+
+AccountingStorageType=accounting_storage/slurmdbd
+AccountingStorageHost=head
+JobAcctGatherType=jobacct_gather/cgroup
+JobAcctGatherFrequency=30
+JobCompType=jobcomp/none
+
+%{ for name, ip in compute_nodes ~}
+NodeName=${name} NodeAddr=${ip} CPUs=${cpus} RealMemory=${real_memory} State=UNKNOWN
+%{ endfor ~}
+PartitionName=cpu Nodes=ALL Default=YES MaxTime=${max_time_hours}:00:00 State=UP

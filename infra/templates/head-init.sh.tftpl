@@ -1,0 +1,88 @@
+#!/bin/bash
+# Head node bring-up, run once by cloud-init after packages are installed.
+# Progress: /var/log/ehpc-init.log. Done when /shared/.ready exists.
+set -euxo pipefail
+install -m 0600 /dev/null /var/log/ehpc-init.log
+exec > >(tee -a /var/log/ehpc-init.log) 2>&1
+
+region="${region}"
+cluster="${cluster_name}"
+param_root="${munge_param_root}"
+
+# 1. Shared filesystem: every node mounts /shared, so job workdirs, the
+#    Python environment and model weights exist once.
+install -d -m 1777 /shared/scratch /shared/cache /shared/cache/torch /shared/data /shared/results
+install -d -o ubuntu -g ubuntu /shared/envs
+systemctl enable --now nfs-server
+exportfs -ra
+
+# 2. AWS CLI (not in the Ubuntu 24.04 archive).
+snap wait system seed.loaded
+snap install aws-cli --classic
+aws() { /snap/bin/aws --region "$region" "$@"; }
+
+# 3. Cluster key. A fresh munge key, published to SSM Parameter Store as a
+#    SecureString under this instance's ID; compute nodes read it with their
+#    own instance role. Keys left by earlier clusters are deleted.
+token=$(curl -fsS -X PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
+instance_id=$(curl -fsS -H "X-aws-ec2-metadata-token: $token" http://169.254.169.254/latest/meta-data/instance-id)
+for stale in $(aws ssm get-parameters-by-path --path "$param_root" --query 'Parameters[].Name' --output text); do
+  [[ "$stale" == "$param_root/$instance_id" ]] || aws ssm delete-parameter --name "$stale"
+done
+head -c 1024 /dev/urandom > /etc/munge/munge.key
+chown munge:munge /etc/munge/munge.key
+chmod 0400 /etc/munge/munge.key
+systemctl restart munge
+keyfile=$(mktemp)
+base64 -w0 /etc/munge/munge.key > "$keyfile"
+aws ssm put-parameter --name "$param_root/$instance_id" --type SecureString --overwrite \
+  --value "file://$keyfile" --query Version --output text
+rm -f "$keyfile"
+
+# 4. Job accounting: slurmdbd on a local MariaDB, so sacct works. The
+#    database password is generated here and never leaves this node.
+systemctl enable --now mariadb
+set +x # never trace the password
+dbpass=$(openssl rand -hex 24)
+mysql <<SQL
+CREATE DATABASE IF NOT EXISTS slurm_acct_db;
+CREATE USER IF NOT EXISTS 'slurm'@'localhost' IDENTIFIED BY '$dbpass';
+ALTER USER 'slurm'@'localhost' IDENTIFIED BY '$dbpass';
+GRANT ALL ON slurm_acct_db.* TO 'slurm'@'localhost';
+SQL
+install -d -o slurm -g slurm /var/log/slurm /var/spool/slurmctld
+install -o slurm -g slurm -m 0600 /dev/null /etc/slurm/slurmdbd.conf
+cat > /etc/slurm/slurmdbd.conf <<CONF
+AuthType=auth/munge
+DbdHost=localhost
+SlurmUser=slurm
+StorageType=accounting_storage/mysql
+StorageHost=localhost
+StorageUser=slurm
+StoragePass=$dbpass
+StorageLoc=slurm_acct_db
+LogFile=/var/log/slurm/slurmdbd.log
+PidFile=/run/slurmdbd/slurmdbd.pid
+CONF
+unset dbpass
+set -x
+systemctl enable slurmdbd
+systemctl restart slurmdbd
+for _ in $(seq 30); do sacctmgr -n list cluster >/dev/null 2>&1 && break; sleep 2; done
+sacctmgr -i add cluster "$cluster" || true
+
+systemctl enable slurmctld
+systemctl restart slurmctld
+
+# 5. Python environment for the workloads, built once on /shared.
+sudo -u ubuntu python3 -m venv /shared/envs/esm
+sudo -u ubuntu /shared/envs/esm/bin/pip install --quiet --no-cache-dir \
+  -r /shared/opt/ehpc/workloads/requirements.txt
+sudo -u ubuntu env TORCH_HOME=/shared/cache/torch /shared/envs/esm/bin/python - <<'PY'
+import esm
+esm.pretrained.esm2_t6_8M_UR50D()
+esm.pretrained.esm2_t12_35M_UR50D()
+PY
+
+touch /shared/.ready
+echo "ehpc head ready: $(date -Is)"
