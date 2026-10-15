@@ -1,0 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.8.0+cpu
+fair-esm==2.0.0
+numpy==2.2.6
+scikit-learn==1.7.1
