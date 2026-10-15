@@ -93,6 +93,13 @@ run "nodes_require_imdsv2_encrypt_disks_and_self_terminate" {
     condition     = aws_instance.head.credit_specification[0].cpu_credits == "standard"
     error_message = "Burstable instances must not run in unlimited-credit mode."
   }
+
+  # EC2 rejects user data over 16 KiB before base64. The head node carries
+  # the workload code, so this is the limit that grows with the repo.
+  assert {
+    condition     = ceil(length(aws_instance.head.user_data_base64) * 3 / 4) < 16384
+    error_message = "Head user data is over EC2's 16 KiB limit."
+  }
 }
 
 run "ssh_is_open_only_to_admin_cidrs_and_only_on_the_head" {

@@ -11,6 +11,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [[ -f "$repo_root/.operator.env" ]] && source "$repo_root/.operator.env"
 
 if [[ -n "${OPERATOR_HOST:-}" ]]; then
+  # shellcheck disable=SC2029 # OPERATOR_DIR is meant to expand here, client side
   stanza=$(ssh "$OPERATOR_HOST" "cd ${OPERATOR_DIR:-ephemeral-hpc}/infra && terraform output -raw ssh_config")
 else
   stanza=$(terraform -chdir="$repo_root/infra" output -raw ssh_config)

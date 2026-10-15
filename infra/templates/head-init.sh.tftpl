@@ -54,7 +54,7 @@ install -d -o slurm -g slurm /var/log/slurm /var/spool/slurmctld
 install -o slurm -g slurm -m 0600 /dev/null /etc/slurm/slurmdbd.conf
 cat > /etc/slurm/slurmdbd.conf <<CONF
 AuthType=auth/munge
-DbdHost=localhost
+DbdHost=head
 SlurmUser=slurm
 StorageType=accounting_storage/mysql
 StorageHost=localhost
