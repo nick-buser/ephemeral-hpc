@@ -41,6 +41,8 @@ allowed() { local name="$1"; shift; "$@" >/dev/null 2>&1; result $? "$name"; }
 [ "$(id -un)" = agent ]; result $? "logged in as agent (uid $(id -u)), groups: $(id -Gn)"
 denied "no sudo" sudo -n true
 denied "cannot read the cluster's munge key" cat /etc/munge/munge.key
+denied "no subordinate UID/GID range for the agent" grep -qs '^agent:' /etc/subuid /etc/subgid
+denied "newuidmap/newgidmap are not setuid" test -u /usr/bin/newuidmap -o -u /usr/bin/newgidmap
 denied "firewall: no instance metadata service, so no AWS credentials" \
   curl -fsS -m 5 --noproxy '*' -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token
 denied "proxy: will not forward to the metadata service either" \
@@ -48,6 +50,7 @@ denied "proxy: will not forward to the metadata service either" \
 denied "firewall: no direct internet" curl -fsS -m 5 --noproxy '*' -o /dev/null https://example.com
 denied "proxy: refuses a domain not on the allowlist" curl -fsS -m 10 -o /dev/null https://example.com
 denied "proxy: refuses a bare IP (no reverse-DNS match)" curl -fsS -m 10 -o /dev/null https://1.1.1.1
+denied "proxy: refuses PyPI (shared CDN, not on the allowlist)" curl -fsS -m 10 -o /dev/null https://pypi.org/simple/
 allowed "proxy: allows an allowlisted domain (UniProt)" \
   curl -fsS -m 30 -o /dev/null https://rest.uniprot.org/uniprotkb/P69905.fasta
 denied "cannot cancel the scheduled TTL shutdown" shutdown -c
@@ -71,13 +74,15 @@ curl -fsS -m 30 -o /dev/null https://rest.uniprot.org/uniprotkb/P69905.fasta >/d
 r $? "allowlisted domain through the head node's proxy"
 timeout 5 bash -c 'exec 3<>/dev/tcp/head/6817' 2>/dev/null
 r $? "cluster network open (slurmctld on head:6817)"
+! grep -qs '^agent:' /etc/subuid /etc/subgid && [ ! -u /usr/bin/newuidmap ]
+r $? "no subordinate IDs, newuidmap not setuid"
 [ "$(nproc)" = "$SLURM_CPUS_PER_TASK" ]; r $? "job sees its $SLURM_CPUS_PER_TASK allocated CPUs (nproc $(nproc))"
 NODE
 # </dev/null: srun forwards stdin, and stdin here is the rest of this script.
 out=$(srun --nodes=3 --ntasks-per-node=1 --cpus-per-task=2 bash "$node_check" 2>&1 </dev/null)
 echo "$out" | sort
 fails=$((fails + $(grep -c '^FAIL' <<<"$out")))
-[ "$(grep -c '^PASS' <<<"$out")" = 15 ]; result $? "all three compute nodes answered"
+[ "$(grep -c '^PASS' <<<"$out")" = 18 ]; result $? "all three compute nodes answered"
 
 # And inside the Apptainer image every job runs in ($EHPC_PY).
 ctr_check="$SCRATCH/.sandbox-container-check.py"
@@ -134,6 +139,12 @@ run_checks() {
     echo "PASS  out-of-instance TTL: $schedules EventBridge schedules"
   else
     echo "FAIL  out-of-instance TTL: $schedules EventBridge schedules"
+    agent_fails=$((agent_fails + 1))
+  fi
+  if ssh "${ssh_opts[@]}" "$admin_alias" 'sudo nft list chain inet ehpc_agent output' | grep -q '100000-4294967294'; then
+    echo "PASS  egress rules also cover subordinate UIDs (100000 and up)"
+  else
+    echo "FAIL  egress rules also cover subordinate UIDs (100000 and up)"
     agent_fails=$((agent_fails + 1))
   fi
   echo
