@@ -46,3 +46,17 @@ reasoning that does not fit in a commit message.
   `destroy_process_group()` fixed it, and the rerun exited 0 on all ranks.
   The live cluster got the fix by hand on `/shared`, so its user data no
   longer matches the repo. The next `infra apply` replaces every node.
+- **22:06 The idle guardrail ended the first cluster before the real run.**
+  The smoke test finished at 21:10. Claude Science connected at 21:52, then
+  spent several minutes reading the host notes and pipeline code before it
+  submitted. The 60-minute idle alarms terminated the head and two compute
+  nodes at 22:06, so the submission had no cluster to land on. compute-1
+  survived because its alarm had not fired yet. The alarms worked as designed. The lesson is about
+  sequencing: the idle clock starts at the last job, so the agent session
+  should start right after the cluster is ready, not after a smoke test and
+  a break.
+- **22:18 Rebuild.** `terraform apply` recreated the three terminated nodes.
+  compute-1 had to be replaced too (`-replace`): it held the old cluster's
+  munge key and an NFS mount to a head that no longer existed. Its
+  termination took 4 minutes, likely shutdown waiting on that hard NFS
+  mount. New nodes launched at 22:22.
