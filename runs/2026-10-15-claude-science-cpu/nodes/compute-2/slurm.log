@@ -1,0 +1,37 @@
+[2026-10-16T03:43:02.226] error: Node configuration differs from hardware: CPUs=2:2(hw) Boards=1:1(hw) SocketsPerBoard=2:1(hw) CoresPerSocket=1:1(hw) ThreadsPerCore=1:2(hw)
+[2026-10-16T03:43:02.246] CPU frequency setting not configured for this node
+[2026-10-16T03:43:02.246] slurmd version 23.11.4 started
+[2026-10-16T03:43:02.246] error:  mpi/pmix_v5: init: (null) [0]: mpi_pmix.c:193: pmi/pmix: can not load PMIx library
+[2026-10-16T03:43:02.246] error: Couldn't load specified plugin name for mpi/pmix: Plugin init() callback failed
+[2026-10-16T03:43:02.246] error: MPI: Cannot create context for mpi/pmix
+[2026-10-16T03:43:02.247] error:  mpi/pmix_v5: init: (null) [0]: mpi_pmix.c:193: pmi/pmix: can not load PMIx library
+[2026-10-16T03:43:02.247] error: Couldn't load specified plugin name for mpi/pmix_v5: Plugin init() callback failed
+[2026-10-16T03:43:02.247] error: MPI: Cannot create context for mpi/pmix_v5
+[2026-10-16T03:43:02.247] slurmd started on Fri, 16 Oct 2026 03:43:02 +0000
+[2026-10-16T03:43:02.249] CPUs=2 Boards=1 Sockets=2 Cores=1 Threads=1 Memory=7776 TmpDisk=28690 Uptime=59 CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null)
+[2026-10-16T04:29:46.316] launch task StepId=1.1 request from UID:1000 GID:1000 HOST:10.42.1.11 PORT:33258
+[2026-10-16T04:29:46.316] task/affinity: lllp_distribution: JobId=1 auto binding off: mask_cpu,one_thread
+[2026-10-16T04:29:46.327] [1.1] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-16T04:29:46.327] [1.1] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-16T04:44:48.371] [1.1] done with step
+[2026-10-16T04:44:48.390] launch task StepId=1.2 request from UID:1000 GID:1000 HOST:10.42.1.11 PORT:33556
+[2026-10-16T04:44:48.390] task/affinity: lllp_distribution: JobId=1 auto binding off: mask_cpu,one_thread
+[2026-10-16T04:44:48.399] [1.2] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-16T04:44:48.399] [1.2] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-16T04:54:49.395] [1.2] done with step
+[2026-10-16T04:56:13.059] launch task StepId=2.0 request from UID:1000 GID:1000 HOST:10.42.1.11 PORT:40334
+[2026-10-16T04:56:13.059] task/affinity: lllp_distribution: JobId=2 auto binding off: mask_cpu,one_thread
+[2026-10-16T04:56:13.069] [2.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-16T04:56:13.069] [2.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-16T04:56:21.979] [2.0] done with step
+[2026-10-16T05:18:31.694] Slurmd shutdown completing
+[2026-10-16T05:18:31.712] CPU frequency setting not configured for this node
+[2026-10-16T05:18:31.712] slurmd version 23.11.4 started
+[2026-10-16T05:18:31.712] error:  mpi/pmix_v5: init: (null) [0]: mpi_pmix.c:193: pmi/pmix: can not load PMIx library
+[2026-10-16T05:18:31.712] error: Couldn't load specified plugin name for mpi/pmix: Plugin init() callback failed
+[2026-10-16T05:18:31.712] error: MPI: Cannot create context for mpi/pmix
+[2026-10-16T05:18:31.712] error:  mpi/pmix_v5: init: (null) [0]: mpi_pmix.c:193: pmi/pmix: can not load PMIx library
+[2026-10-16T05:18:31.712] error: Couldn't load specified plugin name for mpi/pmix_v5: Plugin init() callback failed
+[2026-10-16T05:18:31.712] error: MPI: Cannot create context for mpi/pmix_v5
+[2026-10-16T05:18:31.712] slurmd started on Fri, 16 Oct 2026 05:18:31 +0000
+[2026-10-16T05:18:31.715] CPUs=2 Boards=1 Sockets=1 Cores=1 Threads=2 Memory=7776 TmpDisk=28690 Uptime=5789 CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null)

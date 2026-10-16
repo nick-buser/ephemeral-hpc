@@ -46,9 +46,49 @@ flowchart LR
 
 ## Results
 
-Pending the first full run. This section will hold the measured embedding
-throughput at 1, 2 and 3 nodes, the DDP probe's held-out accuracy and AUROC
-against the majority-class baseline, and what the run cost.
+First full run, 2026-10-15, driven end to end by Claude Science: it read
+the host notes and pipeline code, wrote both job scripts, and submitted each
+through an approval card. Three `m7i-flex.large` compute nodes, ESM-2 8M
+(`esm2_t6_8M_UR50D`), 6,000 reviewed human proteins (2,476,635 residues).
+The job scripts, logs, per-node timings, Slurm accounting and CloudWatch
+metrics are in [`runs/2026-10-15-claude-science-cpu/`](runs/2026-10-15-claude-science-cpu/).
+
+**Embedding throughput.** One 3-node allocation, with steps on 1, 2 and 3
+nodes run one after another (Slurm job 1, 53 minutes).
+
+| Nodes | Slowest node (s) | Residues/s | Speedup | Efficiency |
+|---|---|---|---|---|
+| 1 | 1,693.6 | 1,462 | 1.00× | 100% |
+| 2 | 899.6 | 2,753 | 1.88× | 94% |
+| 3 | 599.1 | 4,134 | 2.83× | 94% |
+
+Sharding by residue count gave every node the same work: 825,545 residues
+each at 3 nodes. The 6% gap is per-node speed. compute-2 was the slowest
+node in both multi-node steps (1,377 residues/s, against 1,404–1,427 on the
+others).
+
+**Enzyme classifier.** 3-node DDP over gloo (Slurm job 2), trained on the
+3-node embeddings for 30 epochs in 2.66 s.
+
+| Held out, n = 1,205 | Classifier | Majority-class baseline |
+|---|---|---|
+| Accuracy | 0.904 | 0.756 |
+| AUROC | 0.960 | 0.5 |
+
+One seed. The split hashes accessions and is not homology-aware, so related
+proteins can land on both sides and accuracy may be optimistic.
+
+**What the accounting caught.** `sacct` showed every embedding step using
+49–50% of its allocated CPU time. Inside a 2-CPU task, `nproc` was 1: the
+job's cgroup held one of each node's two vCPUs. `slurm.conf` gave only
+`CPUs=2`, and Slurm mapped that onto the instance's 1 core × 2 threads
+wrongly. With the topology declared, the same node embedded a fixed
+300-protein sample at 1,773 residues/s instead of 1,467 (+21%). The table
+above was measured at one vCPU per node throughout, so its rows compare
+fairly with each other but sit below what the hardware can do.
+
+Billed cost will be added once AWS billing data catches up (it lags about a
+day).
 
 ## Running it
 

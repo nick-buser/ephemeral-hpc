@@ -33,3 +33,4 @@ workloads/**/out/
 
 # Bulk run outputs stay on the cluster; runs/ keeps the record
 *.npz
+.DS_Store

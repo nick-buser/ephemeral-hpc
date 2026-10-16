@@ -60,3 +60,27 @@ reasoning that does not fit in a commit message.
   munge key and an NFS mount to a head that no longer existed. Its
   termination took 4 minutes, likely shutdown waiting on that hard NFS
   mount. New nodes launched at 22:22.
+- **23:42 Third cluster, idle window raised to 120 minutes.** The second
+  cluster went the same way as the first: Claude Science's resubmission
+  waited on its approval card, and the alarms terminated every node at
+  23:16–23:27. The cluster was rebuilt once more after the change.
+
+## 2026-10-16
+
+- **00:01–00:56 The Claude Science run.** The embedding job (1, 2 and 3
+  nodes in one allocation) ran 53 minutes and the 3-node DDP job 17
+  seconds, both submitted by the agent through approval cards. Claude
+  Science deletes its job directories on the cluster after copying outputs
+  back, so `job.sh` survives only in its own session; the run record takes
+  the submit cells from there.
+- **01:13 Harvest.** `scripts/collect-run.sh` saved accounting, logs and
+  metrics; the job scripts and per-node timings came from Claude Science's
+  workspace. Nothing in the record holds the account ID or a public IP.
+- **01:20 The accounting found a scheduler bug.** `sacct` showed each
+  embedding step using half its allocated CPU time. A task given 2 CPUs saw
+  one (`Cpus_allowed_list: 0`, even with `--cpu-bind=none`), because
+  `slurm.conf` described the nodes only as `CPUs=2` while the hardware is
+  1 core × 2 threads. Declaring the topology on the live cluster gave the
+  task both threads and lifted one-node throughput on a fixed 300-protein
+  sample from 1,467 to 1,773 residues/s. The fix is in Terraform with a
+  test. The scaling table stands as measured, at one vCPU per node.

@@ -1,0 +1,42 @@
+Startup finished in 983ms (kernel) + 3min 23.216s (userspace) = 3min 24.199s 
+graphical.target reached after 14.816s in userspace.
+|`->config-seed_random ran successfully and took 0.000 seconds (duration: 0.001s) @04.31400s +00.00100s
+|`->config-write_files ran successfully and took 0.003 seconds (duration: 0.004s) @04.31500s +00.00400s
+|`->config-growpart ran successfully and took 0.531 seconds (duration: 0.531s) @04.31900s +00.53100s
+|`->config-resizefs ran successfully and took 0.298 seconds (duration: 0.298s) @04.85000s +00.29800s
+|`->config-mounts ran successfully and took 0.001 seconds (duration: 0.001s) @05.14900s +00.00100s
+|`->config-set_hostname ran successfully and took 0.003 seconds (duration: 0.003s) @05.15000s +00.00300s
+|`->config-update_hostname ran successfully and took 0.001 seconds (duration: 0.001s) @05.15300s +00.00100s
+|`->config-update_etc_hosts ran successfully and took 0.000 seconds (duration: 0.000s) @05.15400s +00.00000s
+|`->config-users_groups ran successfully and took 0.095 seconds (duration: 0.095s) @05.15400s +00.09500s
+|`->config-ssh ran successfully and took 0.572 seconds (duration: 0.572s) @05.24900s +00.57300s
+|`->config-set_passwords ran successfully and took 0.000 seconds (duration: 0.001s) @05.82200s +00.00100s
+Finished stage: (init-network) 01.71400 seconds
+
+Starting stage: modules-config
+|`->config-ssh_import_id ran successfully and took 0.001 seconds (duration: 0.001s) @07.59600s +00.00100s
+|`->config-locale ran successfully and took 0.001 seconds (duration: 0.001s) @07.59800s +00.00100s
+|`->config-grub_dpkg ran successfully and took 0.001 seconds (duration: 0.001s) @07.59900s +00.00100s
+|`->config-apt_configure ran successfully and took 0.056 seconds (duration: 0.056s) @07.60000s +00.05600s
+|`->config-runcmd ran successfully and took 0.001 seconds (duration: 0.001s) @07.65600s +00.00100s
+|`->config-byobu ran successfully and took 0.001 seconds (duration: 0.001s) @07.65800s +00.00000s
+Finished stage: (modules-config) 00.09000 seconds
+
+Starting stage: modules-final
+|`->config-package_update_upgrade_install ran successfully and took 35.765 seconds (duration: 35.765s) @11.52300s +37.22000s
+|`->config-write_files_deferred ran successfully and took 0.005 seconds (duration: 0.006s) @48.74400s +00.00500s
+|`->config-reset_rmc ran successfully and took 0.000 seconds (duration: 0.001s) @48.75000s +00.00000s
+|`->config-scripts_vendor ran successfully and took 0.000 seconds (duration: 0.000s) @48.75000s +00.00100s
+|`->config-scripts_per_once ran successfully and took 0.000 seconds (duration: 0.000s) @48.75100s +00.00000s
+|`->config-scripts_per_boot ran successfully and took 0.000 seconds (duration: 0.000s) @48.75200s +00.00000s
+|`->config-scripts_per_instance ran successfully and took 0.000 seconds (duration: 0.000s) @48.75200s +00.00000s
+|`->config-scripts_user ran successfully and took 151.441 seconds (duration: 151.442s) @48.75300s +151.44100s
+|`->config-ssh_authkey_fingerprints ran successfully and took 0.004 seconds (duration: 0.004s) @200.19400s +00.00500s
+|`->config-keys_to_console ran successfully and took 0.156 seconds (duration: 0.157s) @200.19900s +00.15700s
+|`->config-install_hotplug ran successfully and took 0.164 seconds (duration: 0.164s) @200.35600s +00.16500s
+|`->config-final_message ran successfully and took 0.061 seconds (duration: 0.061s) @200.52100s +00.06100s
+Finished stage: (modules-final) 189.09200 seconds
+
+Total Time: 193.48800 seconds
+
+1 boot records analyzed

@@ -1,0 +1,7 @@
+rank,world_size,host,device,threads,model,sequences,residues,seconds,residues_per_second
+0,1,compute-1,cpu,2,esm2_t6_8M_UR50D,6000,2476635,1693.56,1462.4
+0,2,compute-1,cpu,2,esm2_t6_8M_UR50D,3000,1238318,881.98,1404.0
+1,2,compute-2,cpu,2,esm2_t6_8M_UR50D,3000,1238317,899.63,1376.5
+0,3,compute-1,cpu,2,esm2_t6_8M_UR50D,2000,825545,578.51,1427.0
+1,3,compute-2,cpu,2,esm2_t6_8M_UR50D,2000,825545,599.13,1377.9
+2,3,compute-3,cpu,2,esm2_t6_8M_UR50D,2000,825545,584.81,1411.6

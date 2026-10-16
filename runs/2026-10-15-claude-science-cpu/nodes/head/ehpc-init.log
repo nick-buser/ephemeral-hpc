@@ -1,0 +1,65 @@
++ region=us-east-2
++ cluster=ehpc
++ param_root=/ehpc/munge-key
++ install -d -m 1777 /shared/scratch /shared/cache /shared/cache/torch /shared/data /shared/results
++ install -d -o ubuntu -g ubuntu /shared/envs
++ systemctl enable --now nfs-server
++ exportfs -ra
++ snap wait system seed.loaded
++ snap install aws-cli --classic
+aws-cli (v2/stable) 2.35.21 from Amazon Web Services (aws**) installed
+++ curl -fsS -X PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 60'
++ token=<redacted>
+++ curl -fsS -H 'X-aws-ec2-metadata-token: <redacted>' http://169.254.169.254/latest/meta-data/instance-id
++ instance_id=i-040c7fa9804fd5dcd
+++ aws ssm get-parameters-by-path --path /ehpc/munge-key --query 'Parameters[].Name' --output text
+++ /snap/bin/aws --region us-east-2 ssm get-parameters-by-path --path /ehpc/munge-key --query 'Parameters[].Name' --output text
++ for stale in $(aws ssm get-parameters-by-path --path "$param_root" --query 'Parameters[].Name' --output text)
++ [[ /ehpc/munge-key/i-049d3f1b01f70a7cc == \/\e\h\p\c\/\m\u\n\g\e\-\k\e\y\/\i\-\0\4\0\c\7\f\a\9\8\0\4\f\d\5\d\c\d ]]
++ aws ssm delete-parameter --name /ehpc/munge-key/i-049d3f1b01f70a7cc
++ /snap/bin/aws --region us-east-2 ssm delete-parameter --name /ehpc/munge-key/i-049d3f1b01f70a7cc
++ head -c 1024 /dev/urandom
++ chown munge:munge /etc/munge/munge.key
++ chmod 0400 /etc/munge/munge.key
++ systemctl restart munge
+Warning: The unit file, source configuration file or drop-ins of munge.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+++ mktemp
++ keyfile=/tmp/tmp.cGl3yCoGnC
++ base64 -w0 /etc/munge/munge.key
++ aws ssm put-parameter --name /ehpc/munge-key/i-040c7fa9804fd5dcd --type SecureString --overwrite --value file:///tmp/tmp.cGl3yCoGnC --query Version --output text
++ /snap/bin/aws --region us-east-2 ssm put-parameter --name /ehpc/munge-key/i-040c7fa9804fd5dcd --type SecureString --overwrite --value file:///tmp/tmp.cGl3yCoGnC --query Version --output text
+1
++ rm -f /tmp/tmp.cGl3yCoGnC
++ systemctl enable --now mariadb
+Synchronizing state of mariadb.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable mariadb
++ set +x
++ systemctl enable slurmdbd
+Synchronizing state of slurmdbd.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable slurmdbd
++ systemctl restart slurmdbd
+++ seq 30
++ for _ in $(seq 30)
++ sacctmgr -n list cluster
++ sleep 2
++ for _ in $(seq 30)
++ sacctmgr -n list cluster
++ break
++ sacctmgr -i add cluster ehpc
+ Adding Cluster(s)
+  Name           = ehpc
++ systemctl enable slurmctld
+Synchronizing state of slurmctld.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable slurmctld
++ systemctl restart slurmctld
++ sudo -u ubuntu python3 -m venv /shared/envs/esm
++ sudo -u ubuntu /shared/envs/esm/bin/pip install --quiet --no-cache-dir -r /shared/opt/ehpc/workloads/requirements.txt
++ sudo -u ubuntu env TORCH_HOME=/shared/cache/torch /shared/envs/esm/bin/python -
+Downloading: "https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t6_8M_UR50D.pt" to /shared/cache/torch/hub/checkpoints/esm2_t6_8M_UR50D.pt
+Downloading: "https://dl.fbaipublicfiles.com/fair-esm/regression/esm2_t6_8M_UR50D-contact-regression.pt" to /shared/cache/torch/hub/checkpoints/esm2_t6_8M_UR50D-contact-regression.pt
+Downloading: "https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t12_35M_UR50D.pt" to /shared/cache/torch/hub/checkpoints/esm2_t12_35M_UR50D.pt
+Downloading: "https://dl.fbaipublicfiles.com/fair-esm/regression/esm2_t12_35M_UR50D-contact-regression.pt" to /shared/cache/torch/hub/checkpoints/esm2_t12_35M_UR50D-contact-regression.pt
++ touch /shared/.ready
+++ date -Is
++ echo 'ehpc head ready: 2026-10-16T03:45:13+00:00'
+ehpc head ready: 2026-10-16T03:45:13+00:00

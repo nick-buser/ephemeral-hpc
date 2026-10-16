@@ -1,0 +1,4 @@
+job_id	state	requested_utc	ended_utc	intent
+25af1ee0-0b21-4e87-b601-491dff17a1da	failed	2026-10-16T01:58:46Z	2026-10-16T03:13:33Z	ESM-2 8M embedding of /shared/data/uniprot_human.tsv (6,000 seqs) on 1, then 2, then 3 nodes — one 3-node allocation, ~15-30 min
+d69aead0-152c-4ee2-be8d-803fb4e4c558	done	2026-10-16T04:01:28Z	2026-10-16T04:54:52Z	RETRY (cluster back up): ESM-2 8M embedding of uniprot_human.tsv (6,000 seqs) on 1, then 2, then 3 nodes — one 3-node allocation
+e1f11887-4e48-45e3-aea9-04a8557ce22a	done	2026-10-16T04:56:11Z	2026-10-16T04:56:28Z	DDP (gloo) enzyme classifier on 3 nodes from the 3-node ESM-2 8M embeddings of job d69aead0 — 30 epochs, ~minutes

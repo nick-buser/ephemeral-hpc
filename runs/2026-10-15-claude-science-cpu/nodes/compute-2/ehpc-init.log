@@ -1,0 +1,32 @@
++ region=us-east-2
++ param=/ehpc/munge-key/i-040c7fa9804fd5dcd
++ install -d /shared
++ echo 'head:/shared /shared nfs4 defaults,_netdev,nofail,noatime 0 0'
++ systemctl daemon-reload
+++ seq 60
++ for _ in $(seq 60)
++ mount /shared
++ break
++ mountpoint -q /shared
++ snap wait system seed.loaded
++ snap install aws-cli --classic
+aws-cli (v2/stable) 2.35.21 from Amazon Web Services (aws**) installed
++ set +x
++ chown munge:munge /etc/munge/munge.key
++ chmod 0400 /etc/munge/munge.key
++ systemctl restart munge
+Warning: The unit file, source configuration file or drop-ins of munge.service changed on disk. Run 'systemctl daemon-reload' to reload units.
++ install -d -o slurm -g slurm /var/log/slurm /var/spool/slurmd
++ systemctl enable slurmd
+Synchronizing state of slurmd.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable slurmd
+++ seq 60
++ for _ in $(seq 60)
++ systemctl restart slurmd
++ sleep 5
++ systemctl is-active --quiet slurmd
++ break
++ systemctl is-active --quiet slurmd
+++ date -Is
++ echo 'ehpc compute ready: 2026-10-16T03:43:07+00:00'
+ehpc compute ready: 2026-10-16T03:43:07+00:00

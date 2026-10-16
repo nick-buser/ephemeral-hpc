@@ -1,0 +1,30 @@
+[
+    {
+        "id": "i-040c7fa9804fd5dcd",
+        "name": "ehpc-head",
+        "type": "t3.small",
+        "az": "us-east-2a",
+        "launched": "2026-10-16T03:41:44+00:00"
+    },
+    {
+        "id": "i-0a9a75f2ee51ba40c",
+        "name": "ehpc-compute-2",
+        "type": "m7i-flex.large",
+        "az": "us-east-2a",
+        "launched": "2026-10-16T03:41:57+00:00"
+    },
+    {
+        "id": "i-0d4dfa984ee0aed4e",
+        "name": "ehpc-compute-1",
+        "type": "m7i-flex.large",
+        "az": "us-east-2a",
+        "launched": "2026-10-16T03:41:57+00:00"
+    },
+    {
+        "id": "i-0f6e4aa16dcad7fe0",
+        "name": "ehpc-compute-3",
+        "type": "m7i-flex.large",
+        "az": "us-east-2a",
+        "launched": "2026-10-16T03:41:57+00:00"
+    }
+]

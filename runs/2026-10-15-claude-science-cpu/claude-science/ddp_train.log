@@ -1,0 +1,11 @@
+[Gloo] Rank 0 is connected to 2 peer ranks. Expected number of connected peer ranks is : 2
+[Gloo] Rank 2 is connected to 2 peer ranks. Expected number of connected peer ranks is : 2
+[Gloo] Rank 1 is connected to 2 peer ranks. Expected number of connected peer ranks is : 2
+epoch   0 loss 0.5207
+epoch   5 loss 0.2651
+epoch  10 loss 0.2382
+epoch  15 loss 0.2210
+epoch  20 loss 0.2117
+epoch  25 loss 0.2070
+epoch  29 loss 0.1982
+{"world_size": 3, "backend": "gloo", "train_examples": 4795, "test_examples": 1205, "test_accuracy": 0.9037, "test_auroc": 0.9603, "majority_baseline_accuracy": 0.756, "epochs": 30, "train_seconds": 2.66}

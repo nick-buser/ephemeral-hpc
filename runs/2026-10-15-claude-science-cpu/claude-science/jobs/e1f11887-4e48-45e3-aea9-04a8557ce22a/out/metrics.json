@@ -1,0 +1,11 @@
+{
+  "world_size": 3,
+  "backend": "gloo",
+  "train_examples": 4795,
+  "test_examples": 1205,
+  "test_accuracy": 0.9037,
+  "test_auroc": 0.9603,
+  "majority_baseline_accuracy": 0.756,
+  "epochs": 30,
+  "train_seconds": 2.66
+}

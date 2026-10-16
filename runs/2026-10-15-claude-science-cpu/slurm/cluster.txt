@@ -1,0 +1,287 @@
+Configuration data as of 2026-10-16T05:21:01
+AccountingStorageBackupHost = (null)
+AccountingStorageEnforce = none
+AccountingStorageHost   = head
+AccountingStorageExternalHost = (null)
+AccountingStorageParameters = (null)
+AccountingStoragePort   = 6819
+AccountingStorageTRES   = cpu,mem,energy,node,billing,fs/disk,vmem,pages
+AccountingStorageType   = accounting_storage/slurmdbd
+AccountingStorageUser   = N/A
+AccountingStoreFlags    = (null)
+AcctGatherEnergyType    = (null)
+AcctGatherFilesystemType = (null)
+AcctGatherInterconnectType = (null)
+AcctGatherNodeFreq      = 0 sec
+AcctGatherProfileType   = (null)
+AllowSpecResourcesUsage = No
+AuthAltTypes            = (null)
+AuthAltParameters       = (null)
+AuthInfo                = (null)
+AuthType                = auth/munge
+BatchStartTimeout       = 10 sec
+BcastExclude            = /lib,/usr/lib,/lib64,/usr/lib64
+BcastParameters         = (null)
+BOOT_TIME               = 2026-10-16T05:18:26
+BurstBufferType         = (null)
+CliFilterPlugins        = (null)
+ClusterName             = ehpc
+CommunicationParameters = (null)
+CompleteWait            = 0 sec
+CoreSpecPlugin          = (null)
+CpuFreqDef              = Unknown
+CpuFreqGovernors        = OnDemand,Performance,UserSpace
+CredType                = cred/munge
+DebugFlags              = (null)
+DefMemPerCPU            = 3481
+DependencyParameters    = (null)
+DisableRootJobs         = No
+EioTimeout              = 60
+EnforcePartLimits       = NO
+Epilog                  = (null)
+EpilogMsgTime           = 2000 usec
+EpilogSlurmctld         = (null)
+ExtSensorsType          = (null)
+ExtSensorsFreq          = 0 sec
+FairShareDampeningFactor = 1
+FederationParameters    = (null)
+FirstJobId              = 1
+GetEnvTimeout           = 2 sec
+GresTypes               = (null)
+GpuFreqDef              = (null)
+GroupUpdateForce        = 1
+GroupUpdateTime         = 600 sec
+HASH_VAL                = Match
+HealthCheckInterval     = 0 sec
+HealthCheckNodeState    = ANY
+HealthCheckProgram      = (null)
+InactiveLimit           = 0 sec
+InteractiveStepOptions  = --interactive --preserve-env --pty $SHELL
+JobAcctGatherFrequency  = 30
+JobAcctGatherType       = jobacct_gather/cgroup
+JobAcctGatherParams     = (null)
+JobCompHost             = localhost
+JobCompLoc              = (null)
+JobCompParams           = (null)
+JobCompPort             = 0
+JobCompType             = (null)
+JobCompUser             = root
+JobContainerType        = (null)
+JobDefaults             = (null)
+JobFileAppend           = 0
+JobRequeue              = 1
+JobSubmitPlugins        = (null)
+KillOnBadExit           = 0
+KillWait                = 30 sec
+LaunchParameters        = (null)
+Licenses                = (null)
+LogTimeFormat           = iso8601_ms
+MailDomain              = (null)
+MailProg                = /bin/mail
+MaxArraySize            = 1001
+MaxBatchRequeue         = 5
+MaxDBDMsgs              = 20012
+MaxJobCount             = 10000
+MaxJobId                = 67043328
+MaxMemPerNode           = UNLIMITED
+MaxNodeCount            = 3
+MaxStepCount            = 40000
+MaxTasksPerNode         = 512
+MCSPlugin               = (null)
+MCSParameters           = (null)
+MessageTimeout          = 10 sec
+MinJobAge               = 300 sec
+MpiDefault              = (null)
+MpiParams               = (null)
+MULTIPLE_SLURMD         = Yes
+NEXT_JOB_ID             = 10
+NodeFeaturesPlugins     = (null)
+OverTimeLimit           = 0 min
+PluginDir               = /usr/lib/x86_64-linux-gnu/slurm-wlm
+PlugStackConfig         = (null)
+PowerParameters         = (null)
+PowerPlugin             = (null)
+PreemptMode             = OFF
+PreemptParameters       = (null)
+PreemptType             = (null)
+PreemptExemptTime       = 00:00:00
+PrEpParameters          = (null)
+PrEpPlugins             = prep/script
+PriorityParameters      = (null)
+PrioritySiteFactorParameters = (null)
+PrioritySiteFactorPlugin = (null)
+PriorityDecayHalfLife   = 7-00:00:00
+PriorityCalcPeriod      = 00:05:00
+PriorityFavorSmall      = No
+PriorityFlags           = 
+PriorityMaxAge          = 7-00:00:00
+PriorityUsageResetPeriod = NONE
+PriorityType            = priority/multifactor
+PriorityWeightAge       = 0
+PriorityWeightAssoc     = 0
+PriorityWeightFairShare = 0
+PriorityWeightJobSize   = 0
+PriorityWeightPartition = 0
+PriorityWeightQOS       = 0
+PriorityWeightTRES      = (null)
+PrivateData             = none
+ProctrackType           = proctrack/cgroup
+Prolog                  = (null)
+PrologEpilogTimeout     = 65534
+PrologSlurmctld         = (null)
+PrologFlags             = (null)
+PropagatePrioProcess    = 0
+PropagateResourceLimits = ALL
+PropagateResourceLimitsExcept = (null)
+RebootProgram           = (null)
+ReconfigFlags           = (null)
+RequeueExit             = (null)
+RequeueExitHold         = (null)
+ResumeFailProgram       = (null)
+ResumeProgram           = (null)
+ResumeRate              = 300 nodes/min
+ResumeTimeout           = 60 sec
+ResvEpilog              = (null)
+ResvOverRun             = 0 min
+ResvProlog              = (null)
+ReturnToService         = 2
+SchedulerParameters     = (null)
+SchedulerTimeSlice      = 30 sec
+SchedulerType           = sched/backfill
+ScronParameters         = (null)
+SelectType              = select/cons_tres
+SelectTypeParameters    = CR_CPU_MEMORY
+SlurmUser               = slurm(64030)
+SlurmctldAddr           = (null)
+SlurmctldDebug          = info
+SlurmctldHost[0]        = head(10.42.1.10)
+SlurmctldLogFile        = /var/log/slurm/slurmctld.log
+SlurmctldPort           = 6817
+SlurmctldSyslogDebug    = (null)
+SlurmctldPrimaryOffProg = (null)
+SlurmctldPrimaryOnProg  = (null)
+SlurmctldTimeout        = 120 sec
+SlurmctldParameters     = enable_configless
+SlurmdDebug             = info
+SlurmdLogFile           = /var/log/slurm/slurmd.log
+SlurmdParameters        = (null)
+SlurmdPidFile           = /run/slurm/slurmd.pid
+SlurmdPort              = 6818
+SlurmdSpoolDir          = /var/spool/slurmd
+SlurmdSyslogDebug       = (null)
+SlurmdTimeout           = 120 sec
+SlurmdUser              = root(0)
+SlurmSchedLogFile       = (null)
+SlurmSchedLogLevel      = 0
+SlurmctldPidFile        = /run/slurmctld/slurmctld.pid
+SLURM_CONF              = /etc/slurm/slurm.conf
+SLURM_VERSION           = 23.11.4
+SrunEpilog              = (null)
+SrunPortRange           = 0-0
+SrunProlog              = (null)
+StateSaveLocation       = /var/spool/slurmctld
+SuspendExcNodes         = (null)
+SuspendExcParts         = (null)
+SuspendExcStates        = (null)
+SuspendProgram          = (null)
+SuspendRate             = 60 nodes/min
+SuspendTime             = INFINITE
+SuspendTimeout          = 30 sec
+SwitchParameters        = (null)
+SwitchType              = (null)
+TaskEpilog              = (null)
+TaskPlugin              = task/cgroup,task/affinity
+TaskPluginParam         = (null type)
+TaskProlog              = (null)
+TCPTimeout              = 2 sec
+TmpFS                   = /tmp
+TopologyParam           = (null)
+TopologyPlugin          = topology/default
+TrackWCKey              = No
+TreeWidth               = 16
+UsePam                  = No
+UnkillableStepProgram   = (null)
+UnkillableStepTimeout   = 60 sec
+VSizeFactor             = 0 percent
+WaitTime                = 0 sec
+X11Parameters           = (null)
+
+Cgroup Support Configuration:
+AllowedRAMSpace         = 100.0%
+AllowedSwapSpace        = 0.0%
+CgroupMountpoint        = /sys/fs/cgroup
+CgroupPlugin            = autodetect
+ConstrainCores          = yes
+ConstrainDevices        = no
+ConstrainRAMSpace       = yes
+ConstrainSwapSpace      = no
+EnableControllers       = no
+IgnoreSystemd           = no
+IgnoreSystemdOnFailure  = no
+MaxRAMPercent           = 100.0%
+MaxSwapPercent          = 100.0%
+MemorySwappiness        = (null)
+MinRAMSpace             = 30 MB
+
+Slurmctld(primary) at head is UP
+
+NodeName=compute-1 Arch=x86_64 CoresPerSocket=1 
+   CPUAlloc=0 CPUEfctv=2 CPUTot=2 CPULoad=0.79
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=10.42.1.11 NodeHostName=compute-1 Version=23.11.4
+   OS=Linux 7.0.0-1014-aws #14~24.04.1-Ubuntu SMP PREEMPT Fri Sep 18 21:24:59 UTC 2026 
+   RealMemory=6963 AllocMem=0 FreeMem=5606 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=cpu 
+   BootTime=2026-10-16T03:42:01 SlurmdStartTime=2026-10-16T05:18:30
+   LastBusyTime=2026-10-16T05:19:50 ResumeAfterTime=None
+   CfgTRES=cpu=2,mem=6963M,billing=2
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=compute-2 Arch=x86_64 CoresPerSocket=1 
+   CPUAlloc=0 CPUEfctv=2 CPUTot=2 CPULoad=0.00
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=10.42.1.12 NodeHostName=compute-2 Version=23.11.4
+   OS=Linux 7.0.0-1014-aws #14~24.04.1-Ubuntu SMP PREEMPT Fri Sep 18 21:24:59 UTC 2026 
+   RealMemory=6963 AllocMem=0 FreeMem=6189 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=cpu 
+   BootTime=2026-10-16T03:42:02 SlurmdStartTime=2026-10-16T05:18:31
+   LastBusyTime=2026-10-16T05:18:30 ResumeAfterTime=None
+   CfgTRES=cpu=2,mem=6963M,billing=2
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+NodeName=compute-3 Arch=x86_64 CoresPerSocket=1 
+   CPUAlloc=0 CPUEfctv=2 CPUTot=2 CPULoad=0.01
+   AvailableFeatures=(null)
+   ActiveFeatures=(null)
+   Gres=(null)
+   NodeAddr=10.42.1.13 NodeHostName=compute-3 Version=23.11.4
+   OS=Linux 7.0.0-1014-aws #14~24.04.1-Ubuntu SMP PREEMPT Fri Sep 18 21:24:59 UTC 2026 
+   RealMemory=6963 AllocMem=0 FreeMem=6187 Sockets=1 Boards=1
+   State=IDLE ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
+   Partitions=cpu 
+   BootTime=2026-10-16T03:42:01 SlurmdStartTime=2026-10-16T05:18:32
+   LastBusyTime=2026-10-16T05:18:30 ResumeAfterTime=None
+   CfgTRES=cpu=2,mem=6963M,billing=2
+   AllocTRES=
+   CapWatts=n/a
+   CurrentWatts=0 AveWatts=0
+   ExtSensorsJoules=n/a ExtSensorsWatts=0 ExtSensorsTemp=n/a
+
+
+Fri Oct 16 05:21:01 2026
+NODELIST   NODES PARTITION       STATE CPUS    S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON              
+compute-1      1      cpu*        idle 2       1:1:2   6963        0      1   (null) none                
+compute-2      1      cpu*        idle 2       1:1:2   6963        0      1   (null) none                
+compute-3      1      cpu*        idle 2       1:1:2   6963        0      1   (null) none                
