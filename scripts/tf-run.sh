@@ -18,10 +18,10 @@ if [[ "$stack" == infra ]]; then
   if [[ ! -d .terraform ]] || ! grep -q "$backend_bucket" .terraform/terraform.tfstate 2>/dev/null; then
     terraform init -input=false -reconfigure \
       -backend-config="bucket=${backend_bucket}" \
-      -backend-config="region=${AWS_REGION}"
+      -backend-config="region=${AWS_REGION}" >&2
   fi
 else
-  [[ -d .terraform ]] || terraform init -input=false
+  [[ -d .terraform ]] || terraform init -input=false >&2
 fi
 
 terraform "$@"

@@ -10,11 +10,16 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=/dev/null
 [[ -f "$repo_root/.operator.env" ]] && source "$repo_root/.operator.env"
 
+# State lives in S3, so reading an output needs the same short-lived
+# credentials as apply; tf-run.sh fetches them. No `ssh -t` here: a TTY would
+# end every line of the stanza with \r.
+aws_env="AWS_PROFILE=${AWS_PROFILE:-ephemeral-hpc} AWS_REGION=${AWS_REGION:-us-east-2}"
 if [[ -n "${OPERATOR_HOST:-}" ]]; then
-  # shellcheck disable=SC2029 # OPERATOR_DIR is meant to expand here, client side
-  stanza=$(ssh "$OPERATOR_HOST" "cd ${OPERATOR_DIR:-ephemeral-hpc}/infra && terraform output -raw ssh_config")
+  # shellcheck disable=SC2029 # these are meant to expand here, client side
+  stanza=$(ssh "$OPERATOR_HOST" "cd ${OPERATOR_DIR:-ephemeral-hpc} && env $aws_env scripts/tf-run.sh infra output -raw ssh_config")
 else
-  stanza=$(terraform -chdir="$repo_root/infra" output -raw ssh_config)
+  # shellcheck disable=SC2086 # aws_env is two NAME=value words
+  stanza=$(env $aws_env "$repo_root/scripts/tf-run.sh" infra output -raw ssh_config)
 fi
 alias_name=$(awk '/^Host /{print $2; exit}' <<<"$stanza")
 
