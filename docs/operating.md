@@ -26,6 +26,29 @@ scripts/tf.sh bootstrap apply
 This creates the state bucket `ehpc-tfstate-<account>-<region>` and the
 monthly budget. Bootstrap state stays local on the operator host.
 
+## Spending limits
+
+The account's plan sets the hard limit. Check which plan the account is on:
+
+```
+aws freetier get-account-plan-state --region us-east-1
+```
+
+- **Free plan.** AWS cannot charge the card. Usage draws down the sign-up
+  credit, and the account closes when the credit is spent or the plan
+  expires. Nothing to configure.
+- **Paid plan.** Set a spend limit in the console: settings.aws.com →
+  Billing → Cost by project → Spend limit → Set limit. The minimum is $20.
+  Also tick "Stop new resource launches". At the limit AWS pauses the
+  project and stops its resources; data is kept for 90 days. Spend limits
+  have no API, so they are not in Terraform.
+
+Neither limit is real-time. Both run on billing data, which lags by hours.
+The limits that act within minutes are in the stack itself: every node
+powers off after `ttl_hours` and powering off terminates it, idle nodes are
+terminated by alarm, root volumes are deleted with their node, and there is
+no NAT gateway. The bootstrap budget emails at 50%, 80% and 100% of $20.
+
 ## Each session
 
 ```
