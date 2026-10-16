@@ -58,10 +58,16 @@ scripts/ssh-config.sh
 
 `apply` returns in about a minute. The nodes then take about 5–8 minutes to
 install packages, build the Python environment on `/shared` and join Slurm.
-`ssh-config.sh` writes `Host ehpc` into `~/.ssh/config` and prints `sinfo`.
-All three compute nodes should show `idle`.
+`ssh-config.sh` writes two hosts into `~/.ssh/config` and prints `sinfo`:
+`ehpc` logs in as the unprivileged `agent` user (for Claude Science) and
+`ehpc-admin` as `ubuntu`, with sudo (for you). All three compute nodes should
+show `idle`. Then check the sandbox:
 
-Progress on any node: `sudo tail -f /var/log/ehpc-init.log`. The head node
+```
+scripts/sandbox-check.sh
+```
+
+Progress on any node, from `ssh ehpc-admin`: `sudo tail -f /var/log/ehpc-init.log`. The head node
 writes `/shared/.ready` when its Python environment and model weights are
 in place.
 
@@ -74,6 +80,19 @@ squeue; sacct
 ```
 
 To run it through Claude Science instead, see [claude-science.md](claude-science.md).
+
+## Keep the record
+
+Everything on the cluster, `/shared` and the accounting database included,
+is lost at teardown. Before it:
+
+```
+scripts/collect-run.sh <run-name>
+scripts/sandbox-check.sh <run-name>
+```
+
+Both write under `runs/<run-name>/`, with the account ID and public IPs
+replaced.
 
 ## Tear down
 

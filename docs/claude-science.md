@@ -3,28 +3,35 @@
 [Claude Science](https://claude.com/docs/claude-science/remote-compute-clusters)
 connects to SSH hosts listed in `~/.ssh/config`. On a host where `sbatch`
 exists, it submits jobs to Slurm, polls them, and copies outputs back into
-the session. `scripts/ssh-config.sh` adds this cluster as `Host ehpc`.
+the session. `scripts/ssh-config.sh` adds this cluster as `Host ehpc`, which
+logs in as `agent`: an unprivileged user with no sudo, no AWS credentials and
+no internet except an allowlist ([ADR 0006](adr/0006-agent-sandbox.md)).
 
 ## Add the host
 
 1. **Settings › Compute › SSH hosts › Add SSH host**, alias `ehpc`.
 2. Paste the notes below into the host's notes.
 3. On the host's detail page, set **Scratch directory** to
-   `/shared/scratch/ubuntu`. Slurm jobs need it on the shared filesystem.
+   `/shared/scratch/agent`. Slurm jobs need it on the shared filesystem.
 
 ```
 Slurm cluster built by github.com/nick-buser/ephemeral-hpc.
 Partition: cpu (default), nodes compute-[1-3], 2 CPUs and ~6.8 GB each.
 /shared is NFS from the head node and visible on every node.
+You are the unprivileged user "agent": no sudo, and the only internet
+  access is an allowlisting proxy (UniProt, PyPI, PyTorch, ESM weights)
+  that /etc/profile.d/ehpc.sh configures. Other hosts are refused.
 Python env: source /etc/profile.d/ehpc.sh, then $EHPC_ENV/bin/python
-  (torch 2.8 CPU, fair-esm 2.0, numpy, scikit-learn). Do not install into it.
+  (torch 2.8 CPU, fair-esm 2.0, numpy, scikit-learn). It is read-only.
 Pipeline code: $EHPC_WORKLOADS/protein (fetch_uniprot.py, embed.py,
   train_probe.py). Run each multi-node step with srun, one task per node:
   #SBATCH --nodes=3 --ntasks-per-node=1 --cpus-per-task=2
   export SRUN_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
-Dataset: /shared/data/uniprot_human.tsv (fetch_uniprot.py creates it).
+Dataset: /shared/data/uniprot_human.tsv, fetched at boot (6,000 proteins).
 ESM-2 weights are cached in $TORCH_HOME on /shared.
-The cluster terminates itself after 4 hours or 120 idle minutes.
+The cluster terminates itself after 4 hours or 120 idle minutes. If an
+  SSH connection times out, the cluster may have been rebuilt; ask the
+  operator rather than retrying.
 ```
 
 ## The prompt

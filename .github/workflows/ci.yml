@@ -6,6 +6,11 @@ on:
   push:
     branches: [main]
   pull_request:
+  # gitleaks scans only the new commits on push and pull_request; scheduled
+  # and manual runs scan the whole history.
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
