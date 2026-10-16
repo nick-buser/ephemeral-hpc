@@ -56,8 +56,9 @@ scripts/tf.sh infra apply
 scripts/ssh-config.sh
 ```
 
-`apply` returns in about a minute. The nodes then take about 5–8 minutes to
-install packages, build the Python environment on `/shared` and join Slurm.
+`apply` returns in about a minute. The nodes then take about 12–14 minutes:
+packages, Apptainer, the container image build on the head (about 7
+minutes), and joining Slurm.
 `ssh-config.sh` writes two hosts into `~/.ssh/config` and prints `sinfo`:
 `ehpc` logs in as the unprivileged `agent` user (for Claude Science) and
 `ehpc-admin` as `ubuntu`, with sudo (for you). All three compute nodes should
@@ -68,8 +69,8 @@ scripts/sandbox-check.sh
 ```
 
 Progress on any node, from `ssh ehpc-admin`: `sudo tail -f /var/log/ehpc-init.log`. The head node
-writes `/shared/.ready` when its Python environment and model weights are
-in place.
+writes `/shared/.ready` when the container image is built and the dataset
+is fetched.
 
 ## Run the workflow by hand
 

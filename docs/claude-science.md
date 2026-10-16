@@ -21,14 +21,15 @@ Partition: cpu (default), nodes compute-[1-3], 2 CPUs and ~6.8 GB each.
 You are the unprivileged user "agent": no sudo, and the only internet
   access is an allowlisting proxy (UniProt, PyPI, PyTorch, ESM weights)
   that /etc/profile.d/ehpc.sh configures. Other hosts are refused.
-Python env: source /etc/profile.d/ehpc.sh, then $EHPC_ENV/bin/python
-  (torch 2.8 CPU, fair-esm 2.0, numpy, scikit-learn). It is read-only.
+Python runs inside an Apptainer image: source /etc/profile.d/ehpc.sh,
+  then use $EHPC_PY in place of python (in srun lines too). The image
+  ($EHPC_SIF) holds torch 2.8 CPU, fair-esm 2.0, numpy, scikit-learn and
+  the ESM-2 weights. It is read-only; /shared is mounted inside it.
 Pipeline code: $EHPC_WORKLOADS/protein (fetch_uniprot.py, embed.py,
   train_probe.py). Run each multi-node step with srun, one task per node:
   #SBATCH --nodes=3 --ntasks-per-node=1 --cpus-per-task=2
   export SRUN_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
 Dataset: /shared/data/uniprot_human.tsv, fetched at boot (6,000 proteins).
-ESM-2 weights are cached in $TORCH_HOME on /shared.
 The cluster terminates itself after 4 hours or 120 idle minutes. If an
   SSH connection times out, the cluster may have been rebuilt; ask the
   operator rather than retrying.

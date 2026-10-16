@@ -84,3 +84,22 @@ reasoning that does not fit in a commit message.
   task both threads and lifted one-node throughput on a fixed 300-protein
   sample from 1,467 to 1,773 residues/s. The fix is in Terraform with a
   test. The scaling table stands as measured, at one vCPU per node.
+- **01:45 Was the cluster sandboxed? No.** The network kept the internet
+  out, but the agent ran as `ubuntu` with passwordless sudo: IMDS
+  credentials, open egress, and a TTL it could cancel. Built the agent
+  user, UID-matched nftables egress, a squid allowlist, an EventBridge TTL
+  outside the instances, and dropped the SSM managed policy
+  ([ADR 0006](adr/0006-agent-sandbox.md)).
+- **02:00 First live sandbox check.** It reported all PASS, which was
+  itself a bug: `srun` swallowed the rest of the script and the compute
+  nodes were never checked. Reading the evidence it printed turned up
+  three more: a check passing through the wrong layer, an nft rule that
+  rejected kernel packets, and squid trusting reverse DNS. All four fixed
+  and rechecked live: 31 PASS.
+- **02:10 Apptainer.** Prototyped by hand on the live cluster before any
+  Terraform: the container keeps the agent's UID, so the host firewall
+  applies inside it; no measurable overhead. Then into IaC, where the
+  user-data size test and a compute-replacement gap each caught a real
+  problem before EC2 did ([ADR 0007](adr/0007-apptainer.md)). The
+  reasoning and the findings are collected in
+  [notes/agent-isolation.md](notes/agent-isolation.md).
