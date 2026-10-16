@@ -103,3 +103,15 @@ reasoning that does not fit in a commit message.
   problem before EC2 did ([ADR 0007](adr/0007-apptainer.md)). The
   reasoning and the findings are collected in
   [notes/agent-isolation.md](notes/agent-isolation.md).
+- **04:10 Pre-publication review.** An independent review of the repo
+  found that the agent could reach other host UIDs through Apptainer's
+  `--fakeroot` (confirmed live, closed in three layers), that the proxy
+  allowlisted shared-CDN hosts, and that the docs claimed more than the
+  code delivered. All fixed; a rebuilt cluster passed 59 checks. Findings
+  17-20 in the [isolation notes](notes/agent-isolation.md).
+- **06:15 Published.** History rewritten with `git filter-repo` to redact
+  the expired IMDS token from the first run's boot log; the final tree is
+  byte-identical. Published as a new repository so no old commit stays
+  reachable by hash; the private original is archived. Secret scanning,
+  push protection, Dependabot alerts and a no-force-push rule on `main`
+  are on. CI's full-history gitleaks scan: 29 commits, no leaks.
