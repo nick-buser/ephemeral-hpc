@@ -24,6 +24,7 @@ case "$stack" in bootstrap | infra) ;; *)
 esac
 
 pubkey_file="${EHPC_SSH_PUBKEY_FILE:-$HOME/.ssh/ehpc_ed25519.pub}"
+agent_pubkey_file="${EHPC_AGENT_PUBKEY_FILE:-$HOME/.ssh/ehpc_agent_ed25519.pub}"
 env_args=(
   "AWS_PROFILE=${AWS_PROFILE:-ephemeral-hpc}"
   "AWS_REGION=${AWS_REGION:-us-east-2}"
@@ -33,6 +34,7 @@ if [[ "$stack" == infra ]]; then
   env_args+=(
     "TF_VAR_admin_cidrs=[\"${admin_ip}/32\"]"
     "TF_VAR_ssh_public_key=$(cat "$pubkey_file")"
+    "TF_VAR_agent_ssh_public_key=$(cat "$agent_pubkey_file")"
   )
 fi
 if [[ "$stack" == bootstrap ]]; then

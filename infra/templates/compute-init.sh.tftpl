@@ -8,6 +8,11 @@ exec > >(tee -a /var/log/ehpc-init.log) 2>&1
 region="${region}"
 param="${munge_param}"
 
+# 0. The agent's egress rules were loaded by bootcmd; refuse to go on
+#    without them (agent-egress.nft).
+nft list table inet ehpc_agent >/dev/null 2>&1 || nft -f /etc/ehpc/agent-egress.nft
+nft list table inet ehpc_agent >/dev/null
+
 # 1. /shared from the head node; retried while the head is still booting.
 install -d /shared
 echo "head:/shared /shared nfs4 defaults,_netdev,nofail,noatime 0 0" >> /etc/fstab
@@ -42,4 +47,5 @@ for _ in $(seq 60); do
   sleep 10
 done
 systemctl is-active --quiet slurmd
+nft list table inet ehpc_agent >/dev/null # still in place after package installs
 echo "ehpc compute ready: $(date -Is)"

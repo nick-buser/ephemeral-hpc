@@ -22,7 +22,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [[ -f "$repo_root/.operator.env" ]] && source "$repo_root/.operator.env"
 
 name="${1:?usage: collect-run.sh <run-name>}"
-alias_name="${EHPC_SSH_ALIAS:-ehpc}"
+alias_name="${EHPC_SSH_ALIAS:-ehpc-admin}" # needs sudo for daemon logs
 profile="${AWS_PROFILE:-ephemeral-hpc}"
 region="${AWS_REGION:-us-east-2}"
 out="$repo_root/runs/$name"

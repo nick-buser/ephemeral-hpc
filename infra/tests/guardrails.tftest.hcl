@@ -55,8 +55,9 @@ mock_provider "aws" {
 }
 
 variables {
-  admin_cidrs    = ["203.0.113.7/32"]
-  ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFakeKeyForTerraformTestsOnly000000000000000 test"
+  admin_cidrs          = ["203.0.113.7/32"]
+  ssh_public_key       = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFakeKeyForTerraformTestsOnly000000000000000 test"
+  agent_ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFakeAgentKeyForTerraformTestsOnly0000000000 agent"
 }
 
 run "nodes_require_imdsv2_encrypt_disks_and_self_terminate" {
@@ -102,6 +103,33 @@ run "nodes_require_imdsv2_encrypt_disks_and_self_terminate" {
     condition     = ceil(length(aws_instance.head.user_data_base64) * 3 / 4) < 16384
     error_message = "Head user data is over EC2's 16 KiB limit."
   }
+}
+
+run "ttl_is_enforced_outside_the_instances" {
+  command = apply
+
+  assert {
+    condition     = length(aws_scheduler_schedule.ttl) == 1 + var.compute_count
+    error_message = "Every node needs an EventBridge TTL that root on the node cannot cancel."
+  }
+
+  assert {
+    condition = (
+      length(data.aws_iam_policy_document.ttl_terminate.statement) == 1 &&
+      tolist(data.aws_iam_policy_document.ttl_terminate.statement)[0].actions == toset(["ec2:TerminateInstances"])
+    )
+    error_message = "The TTL role may terminate instances and nothing else."
+  }
+}
+
+run "agent_key_must_differ_from_operator_key" {
+  command = plan
+
+  variables {
+    agent_ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFakeKeyForTerraformTestsOnly000000000000000 reused"
+  }
+
+  expect_failures = [var.agent_ssh_public_key]
 }
 
 run "ssh_is_open_only_to_admin_cidrs_and_only_on_the_head" {

@@ -1,7 +1,10 @@
 # Two instance roles so each node gets only what it needs:
 #   head    — publish the munge key to SSM Parameter Store, prune old ones
 #   compute — read the munge key
-# Both get AmazonSSMManagedInstanceCore for break-glass Session Manager access.
+# Nothing else. AmazonSSMManagedInstanceCore was dropped (docs/adr/0006):
+# SSH covers access, and that policy lets a node read every parameter in the
+# account. The agent user cannot reach these roles at all; the metadata
+# service is outside its egress rules.
 # The munge key is generated on the head node at boot and never passes
 # through Terraform state, user data, or git (docs/adr/0004-secrets.md).
 
@@ -32,16 +35,6 @@ resource "aws_iam_role" "head" {
 resource "aws_iam_role" "compute" {
   name_prefix        = "${var.cluster_name}-compute-"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
-}
-
-resource "aws_iam_role_policy_attachment" "ssm_core" {
-  for_each = {
-    head    = aws_iam_role.head.name
-    compute = aws_iam_role.compute.name
-  }
-
-  role       = each.value
-  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 data "aws_iam_policy_document" "head_secrets" {

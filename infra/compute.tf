@@ -26,8 +26,11 @@ locals {
   compute_threads = data.aws_ec2_instance_type.compute.default_threads_per_core
 
   # Leave ~15% of RAM to the OS so slurmd never reports less than configured.
-  compute_mem_mib  = floor(data.aws_ec2_instance_type.compute.memory_size * 0.85)
-  ttl_minutes      = var.ttl_hours * 60
+  compute_mem_mib = floor(data.aws_ec2_instance_type.compute.memory_size * 0.85)
+  ttl_minutes     = var.ttl_hours * 60
+  # The agent user is the same UID everywhere, so NFS ownership and Slurm
+  # job credentials agree across nodes.
+  agent_uid        = 2001
   munge_param_root = "${local.param_prefix}munge-key"
 
   slurm_conf = templatefile("${path.module}/templates/slurm.conf.tftpl", {
@@ -49,6 +52,11 @@ locals {
       [""],
     ))
     profile_env = file("${path.module}/templates/ehpc-profile.sh")
+    agent_uid   = local.agent_uid
+    agent_egress_nft = templatefile("${path.module}/templates/agent-egress.nft.tftpl", {
+      agent_uid = local.agent_uid
+      vpc_cidr  = var.vpc_cidr
+    })
   }
 
   # The workload package ships with the cluster so every run uses the
@@ -100,11 +108,16 @@ resource "aws_instance" "head" {
   }
 
   user_data_base64 = base64gzip(templatefile("${path.module}/templates/head.yaml.tftpl", merge(local.common_files, {
-    vpc_cidr       = var.vpc_cidr
-    ttl_minutes    = local.ttl_minutes
-    slurm_conf     = local.slurm_conf
-    cgroup_conf    = file("${path.module}/templates/cgroup.conf")
-    workload_files = local.workload_files
+    vpc_cidr             = var.vpc_cidr
+    ttl_minutes          = local.ttl_minutes
+    slurm_conf           = local.slurm_conf
+    cgroup_conf          = file("${path.module}/templates/cgroup.conf")
+    workload_files       = local.workload_files
+    agent_ssh_public_key = var.agent_ssh_public_key
+    squid_conf = templatefile("${path.module}/templates/squid.conf.tftpl", {
+      vpc_cidr  = var.vpc_cidr
+      allowlist = var.agent_egress_allowlist
+    })
     init_script = templatefile("${path.module}/templates/head-init.sh.tftpl", {
       region           = var.region
       cluster_name     = var.cluster_name

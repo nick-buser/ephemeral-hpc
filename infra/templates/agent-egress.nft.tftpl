@@ -1,0 +1,18 @@
+# Loaded at boot on every node, before anyone can log in. The agent user
+# (uid ${agent_uid}) may talk to the loopback interface and to other cluster
+# nodes: Slurm, NFS, torch.distributed and the head node's proxy. Everything
+# else it starts is rejected and logged, including the instance metadata
+# service, so the agent never sees the node's AWS credentials. Replies on
+# connections made to the agent (its own SSH session) still flow. Other
+# users and system services are not affected.
+table inet ehpc_agent {
+  chain output {
+    type filter hook output priority filter; policy accept;
+    meta skuid != ${agent_uid} accept
+    oif "lo" accept
+    ct state established,related accept
+    ip daddr ${vpc_cidr} accept
+    limit rate 6/minute burst 10 packets log prefix "ehpc-agent-egress-deny " level info
+    reject
+  }
+}

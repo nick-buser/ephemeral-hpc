@@ -63,6 +63,33 @@ variable "ssh_public_key" {
   }
 }
 
+variable "agent_ssh_public_key" {
+  description = "Key for the unprivileged agent user that Claude Science logs in as. Must differ from the operator key."
+  type        = string
+
+  validation {
+    condition     = can(regex("^ssh-ed25519 [A-Za-z0-9+/=]+", var.agent_ssh_public_key))
+    error_message = "agent_ssh_public_key must be an ed25519 public key."
+  }
+
+  validation {
+    condition     = split(" ", var.agent_ssh_public_key)[1] != split(" ", var.ssh_public_key)[1]
+    error_message = "The agent needs its own key; sharing the operator's would give it sudo."
+  }
+}
+
+variable "agent_egress_allowlist" {
+  description = "Domains the agent may reach through the head node's proxy. Squid dstdomain syntax: a leading dot matches subdomains."
+  type        = list(string)
+  default = [
+    ".uniprot.org",           # dataset
+    "pypi.org",               # pip index
+    "files.pythonhosted.org", # pip downloads
+    "download.pytorch.org",   # torch wheels
+    "dl.fbaipublicfiles.com", # ESM-2 weights
+  ]
+}
+
 variable "ttl_hours" {
   description = "Dead man's switch: every node powers off (and so terminates) this long after boot."
   type        = number

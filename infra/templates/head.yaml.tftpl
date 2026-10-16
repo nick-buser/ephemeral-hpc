@@ -3,8 +3,21 @@
 hostname: head
 preserve_hostname: false
 manage_etc_hosts: false
+# Agent egress rules go in before users exist, so there is no window in
+# which the agent can log in unfiltered.
+bootcmd:
+  - [sh, -c, "echo ${base64encode(agent_egress_nft)} | base64 -d | nft -f -"]
+users:
+  - default
+  - name: agent
+    uid: "${agent_uid}"
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${agent_ssh_public_key}
 package_update: true
 packages:
+  - squid
   - munge
   - slurmctld
   - slurmdbd
@@ -28,6 +41,12 @@ write_files:
   - path: /etc/profile.d/ehpc.sh
     encoding: b64
     content: ${base64encode(profile_env)}
+  - path: /etc/ehpc/agent-egress.nft
+    encoding: b64
+    content: ${base64encode(agent_egress_nft)}
+  - path: /etc/ehpc/squid.conf
+    encoding: b64
+    content: ${base64encode(squid_conf)}
   - path: /usr/local/sbin/ehpc-head-init
     permissions: "0700"
     encoding: b64

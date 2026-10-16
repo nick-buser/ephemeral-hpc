@@ -9,19 +9,31 @@ region="${region}"
 cluster="${cluster_name}"
 param_root="${munge_param_root}"
 
+# 0. The agent's egress rules were loaded by bootcmd; refuse to go on
+#    without them (agent-egress.nft).
+nft list table inet ehpc_agent >/dev/null 2>&1 || nft -f /etc/ehpc/agent-egress.nft
+nft list table inet ehpc_agent >/dev/null
+
 # 1. Shared filesystem: every node mounts /shared, so job workdirs, the
 #    Python environment and model weights exist once.
 install -d -m 1777 /shared/scratch /shared/cache /shared/cache/torch /shared/data /shared/results
 install -d -o ubuntu -g ubuntu /shared/envs
+install -d -o agent -g agent /shared/scratch/agent
 systemctl enable --now nfs-server
 exportfs -ra
 
-# 2. AWS CLI (not in the Ubuntu 24.04 archive).
+# 2. The agent's allowlisting proxy (squid.conf).
+install -m 0644 /etc/ehpc/squid.conf /etc/squid/squid.conf
+squid -k parse
+systemctl enable squid
+systemctl restart squid
+
+# 3. AWS CLI (not in the Ubuntu 24.04 archive).
 snap wait system seed.loaded
 snap install aws-cli --classic
 aws() { /snap/bin/aws --region "$region" "$@"; }
 
-# 3. Cluster key. A fresh munge key, published to SSM Parameter Store as a
+# 4. Cluster key. A fresh munge key, published to SSM Parameter Store as a
 #    SecureString under this instance's ID; compute nodes read it with their
 #    own instance role. Keys left by earlier clusters are deleted.
 set +x # never trace the IMDS session token
@@ -42,7 +54,7 @@ aws ssm put-parameter --name "$param_root/$instance_id" --type SecureString --ov
   --value "file://$keyfile" --query Version --output text
 rm -f "$keyfile"
 
-# 4. Job accounting: slurmdbd on a local MariaDB, so sacct works. The
+# 5. Job accounting: slurmdbd on a local MariaDB, so sacct works. The
 #    database password is generated here and never leaves this node.
 systemctl enable --now mariadb
 set +x # never trace the password
@@ -77,7 +89,7 @@ sacctmgr -i add cluster "$cluster" || true
 systemctl enable slurmctld
 systemctl restart slurmctld
 
-# 5. Python environment for the workloads, built once on /shared.
+# 6. Python environment for the workloads, built once on /shared.
 sudo -u ubuntu python3 -m venv /shared/envs/esm
 sudo -u ubuntu /shared/envs/esm/bin/pip install --quiet --no-cache-dir \
   -r /shared/opt/ehpc/workloads/requirements.txt
@@ -87,5 +99,9 @@ esm.pretrained.esm2_t6_8M_UR50D()
 esm.pretrained.esm2_t12_35M_UR50D()
 PY
 
+# 7. The dataset, fetched once so agent jobs start from the same sample.
+sudo -u ubuntu python3 /shared/opt/ehpc/workloads/protein/fetch_uniprot.py
+
+nft list table inet ehpc_agent >/dev/null # still in place after package installs
 touch /shared/.ready
 echo "ehpc head ready: $(date -Is)"

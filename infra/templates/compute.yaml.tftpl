@@ -2,6 +2,14 @@
 hostname: ${node_name}
 preserve_hostname: false
 manage_etc_hosts: false
+bootcmd:
+  - [sh, -c, "echo ${base64encode(agent_egress_nft)} | base64 -d | nft -f -"]
+users:
+  - default
+  - name: agent
+    uid: "${agent_uid}"
+    shell: /bin/bash
+    lock_passwd: true
 package_update: true
 packages:
   - munge
@@ -18,6 +26,9 @@ write_files:
   - path: /etc/profile.d/ehpc.sh
     encoding: b64
     content: ${base64encode(profile_env)}
+  - path: /etc/ehpc/agent-egress.nft
+    encoding: b64
+    content: ${base64encode(agent_egress_nft)}
   - path: /usr/local/sbin/ehpc-compute-init
     permissions: "0700"
     encoding: b64

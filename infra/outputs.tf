@@ -19,13 +19,23 @@ output "slurm_node_shape" {
 }
 
 output "ssh_config" {
-  description = "Append-ready ssh_config stanza; scripts/ssh-config.sh writes it."
+  description = "Append-ready ssh_config stanzas; scripts/ssh-config.sh writes them. Claude Science uses the first (unprivileged agent); the operator uses -admin."
   value       = <<-EOT
     Host ${var.cluster_name}
+      HostName ${aws_instance.head.public_ip}
+      User agent
+      IdentityFile ~/.ssh/ehpc_agent_ed25519
+      IdentitiesOnly yes
+      ForwardAgent no
+      StrictHostKeyChecking accept-new
+      UserKnownHostsFile ~/.ssh/known_hosts.${var.cluster_name}
+
+    Host ${var.cluster_name}-admin
       HostName ${aws_instance.head.public_ip}
       User ubuntu
       IdentityFile ~/.ssh/ehpc_ed25519
       IdentitiesOnly yes
+      ForwardAgent no
       StrictHostKeyChecking accept-new
       UserKnownHostsFile ~/.ssh/known_hosts.${var.cluster_name}
   EOT
