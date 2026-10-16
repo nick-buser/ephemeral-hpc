@@ -18,8 +18,14 @@ locals {
   }
   hosts = merge({ head = local.head_ip }, local.compute_nodes)
 
+  # Slurm must be told the real core/thread layout. Given only CPUs=2 on a
+  # 1-core, 2-thread instance it assumes two single-thread sockets, and the
+  # job cgroup ends up holding one of the two vCPUs (see docs/worklog.md).
+  compute_cpus    = data.aws_ec2_instance_type.compute.default_vcpus
+  compute_cores   = data.aws_ec2_instance_type.compute.default_cores
+  compute_threads = data.aws_ec2_instance_type.compute.default_threads_per_core
+
   # Leave ~15% of RAM to the OS so slurmd never reports less than configured.
-  compute_cpus     = data.aws_ec2_instance_type.compute.default_vcpus
   compute_mem_mib  = floor(data.aws_ec2_instance_type.compute.memory_size * 0.85)
   ttl_minutes      = var.ttl_hours * 60
   munge_param_root = "${local.param_prefix}munge-key"
@@ -29,6 +35,8 @@ locals {
     head_ip         = local.head_ip
     compute_nodes   = local.compute_nodes
     cpus            = local.compute_cpus
+    cores           = local.compute_cores
+    threads         = local.compute_threads
     real_memory     = local.compute_mem_mib
     def_mem_per_cpu = floor(local.compute_mem_mib / local.compute_cpus)
     max_time_hours  = var.ttl_hours

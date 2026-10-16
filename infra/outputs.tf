@@ -10,9 +10,11 @@ output "nodes" {
 output "slurm_node_shape" {
   description = "What each compute node advertises to Slurm."
   value = {
-    instance_type = var.compute_instance_type
-    cpus          = local.compute_cpus
-    real_memory   = local.compute_mem_mib
+    instance_type    = var.compute_instance_type
+    cpus             = local.compute_cpus
+    cores_per_socket = local.compute_cores
+    threads_per_core = local.compute_threads
+    real_memory      = local.compute_mem_mib
   }
 }
 

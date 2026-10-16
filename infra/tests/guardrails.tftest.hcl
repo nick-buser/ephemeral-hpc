@@ -10,8 +10,10 @@ mock_provider "aws" {
   }
   mock_data "aws_ec2_instance_type" {
     defaults = {
-      default_vcpus = 2
-      memory_size   = 8192
+      default_vcpus            = 2
+      default_cores            = 1
+      default_threads_per_core = 2
+      memory_size              = 8192
     }
   }
   mock_data "aws_availability_zones" {
@@ -127,6 +129,15 @@ run "slurm_node_shape_follows_the_instance_type" {
   assert {
     condition     = output.slurm_node_shape.cpus == 2 && output.slurm_node_shape.real_memory == 6963
     error_message = "Slurm must advertise the instance's vCPUs and ~85% of its memory."
+  }
+
+  assert {
+    condition = (
+      output.slurm_node_shape.cores_per_socket == 1 &&
+      output.slurm_node_shape.threads_per_core == 2 &&
+      output.slurm_node_shape.cores_per_socket * output.slurm_node_shape.threads_per_core == output.slurm_node_shape.cpus
+    )
+    error_message = "Slurm must get the real core/thread layout, or job cgroups lose vCPUs."
   }
 
   assert {

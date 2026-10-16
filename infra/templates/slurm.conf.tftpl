@@ -32,6 +32,6 @@ JobAcctGatherFrequency=30
 JobCompType=jobcomp/none
 
 %{ for name, ip in compute_nodes ~}
-NodeName=${name} NodeAddr=${ip} CPUs=${cpus} RealMemory=${real_memory} State=UNKNOWN
+NodeName=${name} NodeAddr=${ip} CPUs=${cpus} Boards=1 SocketsPerBoard=1 CoresPerSocket=${cores} ThreadsPerCore=${threads} RealMemory=${real_memory} State=UNKNOWN
 %{ endfor ~}
 PartitionName=cpu Nodes=ALL Default=YES MaxTime=${max_time_hours}:00:00 State=UP
