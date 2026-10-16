@@ -124,6 +124,10 @@ def main() -> None:
         args.out.mkdir(parents=True, exist_ok=True)
         (args.out / "metrics.json").write_text(json.dumps(metrics, indent=2))
         print(json.dumps(metrics))
+    # Rank 0 hosts the rendezvous store. Without this barrier the other ranks
+    # tear down while rank 0 is still evaluating, rank 0 then exits and takes
+    # the store with it, and gloo aborts a peer mid-shutdown.
+    dist.barrier()
     dist.destroy_process_group()
 
 
