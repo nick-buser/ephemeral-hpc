@@ -4,6 +4,9 @@ preserve_hostname: false
 manage_etc_hosts: false
 bootcmd:
   - [sh, -c, "echo ${base64encode(agent_egress_nft)} | base64 -d | nft -f -"]
+  # No subordinate UID/GID ranges for the users created next: with one,
+  # the agent could map itself to another host UID (finding 17).
+  - [sh, -c, "printf 'SUB_UID_COUNT 0\\nSUB_GID_COUNT 0\\n' >> /etc/login.defs"]
 users:
   - default
   - name: agent

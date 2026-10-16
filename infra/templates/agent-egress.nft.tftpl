@@ -5,13 +5,19 @@
 # metadata service, so the agent never sees the node's AWS credentials.
 # Replies on connections made to the agent (its own SSH session) still flow.
 #
-# The match is positive (skuid == agent, then jump). A negated match would
+# The match is positive (skuid in a set, then jump). A negated match would
 # also catch packets the kernel sends with no owning socket (IPv6 multicast
 # reports, TCP resets), because skuid cannot be evaluated for them.
+#
+# The set also covers 100000 and up, where subordinate UIDs for user
+# namespaces live. With a subuid range, `apptainer exec --fakeroot` let the
+# agent setuid() to a host UID other than its own and leave this filter
+# entirely (docs/notes/agent-isolation.md, finding 17). Boot also removes
+# the ranges and the setuid bit on newuidmap; this is the third layer.
 table inet ehpc_agent {
   chain output {
     type filter hook output priority filter; policy accept;
-    meta skuid ${agent_uid} jump agent
+    meta skuid { ${agent_uid}, 100000-4294967294 } jump agent
   }
   chain agent {
     oif "lo" accept

@@ -26,6 +26,15 @@ echo "${apptainer_sha256}  /tmp/apptainer.deb" | sha256sum -c -
 # Unattended upgrades may hold the dpkg lock this early in boot.
 DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 install -y -q /tmp/apptainer.deb
 rm -f /tmp/apptainer.deb
+# The .deb depends on uidmap, whose setuid newuidmap/newgidmap let users
+# map into subordinate UIDs. Root's image build does not need them.
+dpkg-statoverride --update --add root root 0755 /usr/bin/newuidmap
+dpkg-statoverride --update --add root root 0755 /usr/bin/newgidmap
+# Not `! grep`: set -e ignores negated commands, so that would never fail.
+if grep -qs '^agent:' /etc/subuid /etc/subgid; then
+  echo 'agent has subordinate IDs' >&2
+  exit 1
+fi
 
 # 3. Cluster key, published by this cluster's head node (named by its ID).
 snap wait system seed.loaded

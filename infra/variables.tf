@@ -79,15 +79,11 @@ variable "agent_ssh_public_key" {
 }
 
 variable "agent_egress_allowlist" {
-  description = "Domains the agent may reach through the head node's proxy. Squid dstdomain syntax: a leading dot matches subdomains."
+  description = "Domains the agent may reach through the head node's proxy. Squid dstdomain syntax: a leading dot matches subdomains. Keep shared-CDN hosts off it: squid sees only the CONNECT name, so a TLS handshake naming another site on the same CDN edge would get through."
   type        = list(string)
-  default = [
-    ".uniprot.org",           # dataset
-    "pypi.org",               # pip index
-    "files.pythonhosted.org", # pip downloads
-    "download.pytorch.org",   # torch wheels
-    "dl.fbaipublicfiles.com", # ESM-2 weights
-  ]
+  # Packages and model weights are inside the Apptainer image, so at run
+  # time the agent needs only the dataset source (a dedicated EBI address).
+  default = [".uniprot.org"]
 }
 
 variable "ttl_hours" {
