@@ -99,6 +99,23 @@ Each entry: what we saw, why, the fix, and the general lesson.
 13. **Idle detection versus human latency.** (From the first run.) An
     agent waiting on a human approval looks idle to a CPU alarm. The
     cluster terminated itself twice before a job arrived.
+14. **"Built from the same definition" is not "the same bytes".** The
+    image built by hand and the one built at boot hash differently
+    (timestamps inside the SIF). The contents match; the checksum does
+    not. A build-once-in-CI image, pulled by digest, would make the
+    checksum mean something across clusters.
+15. **Unprivileged does not mean "cannot build".** As `agent`, `apptainer
+    build` from the cluster's own image ran its `%post` step as "root":
+    root inside a user namespace, with no power on the host (the process
+    is still UID 2001, so the firewall still applies). The agent can make
+    derived images from local ones, and pip-install through the proxy
+    while doing it. It cannot pull a new base: no registry is allowlisted.
+
+16. **Secret patterns meet biology.** The harvest's secret scan refused a
+    dataset file: a protein sequence contains `ASIA` followed by 16
+    capital letters, the shape of an AWS temporary key ID. Real key IDs
+    have boundaries on both sides; the pattern now requires them (gitleaks
+    already did), and datasets no longer enter the record at all.
 
 ## Our host controls versus Apptainer
 

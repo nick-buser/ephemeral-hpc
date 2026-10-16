@@ -8,7 +8,7 @@
 # Writes runs/<name>/:
 #   slurm/    sacct for every job and step, cluster config, node shapes
 #   jobs/     the scratch tree: job scripts, logs, timings, metrics
-#             (embeddings and checkpoints are left behind)
+#             (embeddings, checkpoints, datasets and images stay behind)
 #   nodes/    per-node boot log, Slurm daemon logs, boot timing
 #   aws/      instances and the run window's CloudWatch metrics
 #
@@ -62,7 +62,7 @@ on_head 'scontrol show config; echo; scontrol show nodes; echo; sinfo -N -l' \
   >"$out/slurm/cluster.txt"
 
 # 2. The scratch tree, minus bulk outputs.
-on_head 'tar -C /shared/scratch -czf - --exclude="*.npz" --exclude="*.pt" --exclude="*.npy" .' |
+on_head 'tar -C /shared/scratch -czf - --exclude="*.npz" --exclude="*.pt" --exclude="*.npy" --exclude="*.tsv" --exclude="*.sif" .' |
   tar -C "$out/jobs" -xzf -
 
 # 3. Per-node logs and boot timing.
@@ -123,7 +123,9 @@ head_ip=$(ssh -G "$alias_name" | awk '$1=="hostname"{print $2}')
     -e "s/${head_ip//./\\.}/<head-public-ip>/g" "$f"
   rm -f "$f.bak"
 done
-if grep -rIlE 'BEGIN [A-Z ]*PRIVATE KEY|StoragePass|aws_secret_access_key|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|metadata-token: [A-Za-z0-9]|^\++ *token=[A-Za-z0-9]' "$out"; then
+# Key IDs need boundaries: protein sequences are long runs of capitals and
+# contain "ASIA" followed by 16 more of them.
+if grep -rIlE 'BEGIN [A-Z ]*PRIVATE KEY|StoragePass|aws_secret_access_key|(^|[^A-Z0-9])(AKIA|ASIA)[A-Z0-9]{16}([^A-Z0-9]|$)|metadata-token: [A-Za-z0-9]|^\++ *token=[A-Za-z0-9]' "$out"; then
   echo "refusing: the files above look like they hold secrets" >&2
   exit 1
 fi

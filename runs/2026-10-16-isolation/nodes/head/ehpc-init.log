@@ -1,0 +1,153 @@
++ region=us-east-2
++ cluster=ehpc
++ param_root=/ehpc/munge-key
++ nft list table inet ehpc_agent
++ nft list table inet ehpc_agent
++ install -d -m 1777 /shared/scratch /shared/data /shared/results
++ install -d -o agent -g agent /shared/scratch/agent
++ systemctl enable --now nfs-server
++ exportfs -ra
++ install -m 0644 /etc/ehpc/squid.conf /etc/squid/squid.conf
++ squid -k parse
+2026/10/16 06:30:38| Processing Configuration File: /etc/squid/squid.conf (depth 0)
+2026/10/16 06:30:38| Processing: http_port 3128
+2026/10/16 06:30:38| Processing: acl cluster src 10.42.0.0/16
+2026/10/16 06:30:38| Processing: acl allowed dstdomain -n .uniprot.org pypi.org files.pythonhosted.org download.pytorch.org dl.fbaipublicfiles.com
+2026/10/16 06:30:38| Processing: acl link_local dst 169.254.0.0/16 fe80::/10
+2026/10/16 06:30:38| Processing: acl SSL_ports port 443
+2026/10/16 06:30:38| Processing: acl Safe_ports port 80 443
+2026/10/16 06:30:38| Processing: acl CONNECT method CONNECT
+2026/10/16 06:30:38| Processing: http_access deny link_local
+2026/10/16 06:30:38| Processing: http_access deny to_localhost
+2026/10/16 06:30:38| Processing: http_access deny !Safe_ports
+2026/10/16 06:30:38| Processing: http_access deny CONNECT !SSL_ports
+2026/10/16 06:30:38| Processing: http_access allow cluster allowed
+2026/10/16 06:30:38| Processing: http_access deny all
+2026/10/16 06:30:38| Processing: cache deny all
+2026/10/16 06:30:38| Processing: access_log daemon:/var/log/squid/access.log squid
+2026/10/16 06:30:38| Processing: forwarded_for delete
++ systemctl enable squid
+Synchronizing state of squid.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable squid
++ systemctl restart squid
++ snap wait system seed.loaded
++ snap install aws-cli --classic
+aws-cli (v2/stable) 2.35.21 from Amazon Web Services (aws**) installed
++ set +x
+++ aws ssm get-parameters-by-path --path /ehpc/munge-key --query 'Parameters[].Name' --output text
+++ /snap/bin/aws --region us-east-2 ssm get-parameters-by-path --path /ehpc/munge-key --query 'Parameters[].Name' --output text
++ for stale in $(aws ssm get-parameters-by-path --path "$param_root" --query 'Parameters[].Name' --output text)
++ [[ /ehpc/munge-key/i-08cf1d31504548c5d == \/\e\h\p\c\/\m\u\n\g\e\-\k\e\y\/\i\-\0\1\5\7\1\c\b\6\c\b\f\b\3\1\5\f\4 ]]
++ aws ssm delete-parameter --name /ehpc/munge-key/i-08cf1d31504548c5d
++ /snap/bin/aws --region us-east-2 ssm delete-parameter --name /ehpc/munge-key/i-08cf1d31504548c5d
++ head -c 1024 /dev/urandom
++ chown munge:munge /etc/munge/munge.key
++ chmod 0400 /etc/munge/munge.key
++ systemctl restart munge
+Warning: The unit file, source configuration file or drop-ins of munge.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+++ mktemp
++ keyfile=/tmp/tmp.GDbizx0Dto
++ base64 -w0 /etc/munge/munge.key
++ aws ssm put-parameter --name /ehpc/munge-key/i-01571cb6cbfb315f4 --type SecureString --overwrite --value file:///tmp/tmp.GDbizx0Dto --query Version --output text
++ /snap/bin/aws --region us-east-2 ssm put-parameter --name /ehpc/munge-key/i-01571cb6cbfb315f4 --type SecureString --overwrite --value file:///tmp/tmp.GDbizx0Dto --query Version --output text
+1
++ rm -f /tmp/tmp.GDbizx0Dto
++ systemctl enable --now mariadb
+Synchronizing state of mariadb.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable mariadb
++ set +x
++ systemctl enable slurmdbd
+Synchronizing state of slurmdbd.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable slurmdbd
++ systemctl restart slurmdbd
+++ seq 30
++ for _ in $(seq 30)
++ sacctmgr -n list cluster
++ sleep 2
++ for _ in $(seq 30)
++ sacctmgr -n list cluster
++ break
++ sacctmgr -i add cluster ehpc
+ Adding Cluster(s)
+  Name           = ehpc
++ systemctl enable slurmctld
+Synchronizing state of slurmctld.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable slurmctld
++ systemctl restart slurmctld
++ curl -fsSLo /tmp/apptainer.deb https://github.com/apptainer/apptainer/releases/download/v1.5.4/apptainer_1.5.4_amd64.deb
++ echo '281cf9bd68f16b6f7c34a3a94d77668bc327b9c09db0412ce7890162734a97f7  /tmp/apptainer.deb'
++ sha256sum -c -
+/tmp/apptainer.deb: OK
++ DEBIAN_FRONTEND=noninteractive
++ apt-get -o DPkg::Lock::Timeout=600 install -y -q /tmp/apptainer.deb
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  fakeroot libfakeroot libsubid4 libtalloc2 uidmap
+The following NEW packages will be installed:
+  apptainer fakeroot libfakeroot libsubid4 libtalloc2 uidmap
+0 upgraded, 6 newly installed, 0 to remove and 40 not upgraded.
+Need to get 176 kB/33.0 MB of archives.
+After this operation, 147 MB of additional disk space will be used.
+Get:1 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libsubid4 amd64 1:4.13+dfsg1-4ubuntu3.2 [23.4 kB]
+Get:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libtalloc2 amd64 2.4.2-1build2 [27.3 kB]
+Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 uidmap amd64 1:4.13+dfsg1-4ubuntu3.2 [26.0 kB]
+Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libfakeroot amd64 1.33-1 [32.4 kB]
+Get:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fakeroot amd64 1.33-1 [67.2 kB]
+Get:6 /tmp/apptainer.deb apptainer amd64 1.5.4 [32.9 MB]
+Fetched 176 kB in 0s (659 kB/s)
+Selecting previously unselected package libsubid4:amd64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 83732 files and directories currently installed.)
+Preparing to unpack .../0-libsubid4_1%3a4.13+dfsg1-4ubuntu3.2_amd64.deb ...
+Unpacking libsubid4:amd64 (1:4.13+dfsg1-4ubuntu3.2) ...
+Selecting previously unselected package libtalloc2:amd64.
+Preparing to unpack .../1-libtalloc2_2.4.2-1build2_amd64.deb ...
+Unpacking libtalloc2:amd64 (2.4.2-1build2) ...
+Selecting previously unselected package uidmap.
+Preparing to unpack .../2-uidmap_1%3a4.13+dfsg1-4ubuntu3.2_amd64.deb ...
+Unpacking uidmap (1:4.13+dfsg1-4ubuntu3.2) ...
+Selecting previously unselected package libfakeroot:amd64.
+Preparing to unpack .../3-libfakeroot_1.33-1_amd64.deb ...
+Unpacking libfakeroot:amd64 (1.33-1) ...
+Selecting previously unselected package fakeroot.
+Preparing to unpack .../4-fakeroot_1.33-1_amd64.deb ...
+Unpacking fakeroot (1.33-1) ...
+Selecting previously unselected package apptainer.
+Preparing to unpack .../5-apptainer.deb ...
+Unpacking apptainer (1.5.4) ...
+Setting up libfakeroot:amd64 (1.33-1) ...
+Setting up fakeroot (1.33-1) ...
+update-alternatives: using /usr/bin/fakeroot-sysv to provide /usr/bin/fakeroot (fakeroot) in auto mode
+Setting up libtalloc2:amd64 (2.4.2-1build2) ...
+Setting up libsubid4:amd64 (1:4.13+dfsg1-4ubuntu3.2) ...
+Setting up uidmap (1:4.13+dfsg1-4ubuntu3.2) ...
+Setting up apptainer (1.5.4) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+
+Running kernel seems to be up-to-date.
+
+No services need to be restarted.
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
++ rm -f /tmp/apptainer.deb
++ install -d -m 0755 /shared/containers
++ cd /shared/opt/ehpc/workloads
++ apptainer build --force /shared/containers/esm.sif container/esm.def
++ cd /
++ chmod 0644 /shared/containers/esm.sif
++ sha256sum /shared/containers/esm.sif
++ tee /shared/containers/esm.sif.sha256
+1ccf4395041d0fbfaa067fca1c2a39d3c488f8ab830465125e8222b1994cd726  /shared/containers/esm.sif
++ sudo -u ubuntu python3 /shared/opt/ehpc/workloads/protein/fetch_uniprot.py
+wrote 6000 proteins (1334 enzymes) to /shared/data/uniprot_human.tsv
++ nft list table inet ehpc_agent
++ touch /shared/.ready
+++ date -Is
++ echo 'ehpc head ready: 2026-10-16T06:44:47+00:00'
+ehpc head ready: 2026-10-16T06:44:47+00:00

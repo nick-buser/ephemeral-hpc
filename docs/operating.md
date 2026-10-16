@@ -56,7 +56,7 @@ scripts/tf.sh infra apply
 scripts/ssh-config.sh
 ```
 
-`apply` returns in about a minute. The nodes then take about 12–14 minutes:
+`apply` returns in about a minute. The nodes then take about 17 minutes:
 packages, Apptainer, the container image build on the head (about 7
 minutes), and joining Slurm.
 `ssh-config.sh` writes two hosts into `~/.ssh/config` and prints `sinfo`:
