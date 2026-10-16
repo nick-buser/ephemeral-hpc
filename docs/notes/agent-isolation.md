@@ -24,9 +24,9 @@ but an approval is a person skimming a script, not a boundary.
 | Machine | One EC2 VM per node; the only hard isolation boundary | Escaping to other tenants or other machines | (AWS's guarantee) |
 | Network | Dedicated VPC, no peering; inbound SSH only from the operator's /32 | Reaching the homelab, laptop or other AWS resources | flow logs |
 | Account | Instance roles limited to one SSM path; EventBridge TTL outside the instances | Using the account; keeping nodes alive past the TTL | `out-of-instance TTL: 4 EventBridge schedules` |
-| Identity | `agent` user, own key, no sudo; operator keeps `ubuntu` | Root; editing code, image, firewall or Slurm config; reading the munge key | `no sudo`, `cannot read the cluster's munge key`, `cannot cancel the scheduled TTL shutdown` |
-| Egress | nftables, matched on the packet owner's UID: loopback and VPC only | AWS credentials (IMDS); direct internet | `firewall: no instance metadata service`, `firewall: no direct internet` |
-| Proxy | Squid allowlist (UniProt, PyPI, PyTorch, ESM weights), every request logged | Any site not on the list | `proxy: refuses …`, `proxy: allows …` |
+| Identity | `agent` user, own key, no sudo, no subordinate UIDs; `newuidmap` not setuid; operator keeps `ubuntu` | Root; becoming any other host UID; editing code, image, firewall or Slurm config; reading the munge key | `no sudo`, `no subordinate UID/GID range`, `newuidmap/newgidmap are not setuid`, `cannot read the cluster's munge key` |
+| Egress | nftables, matched on the packet owner's UID (the agent's, and every subordinate UID): loopback and VPC only | AWS credentials (IMDS); direct internet | `firewall: …`, `egress rules also cover subordinate UIDs` |
+| Proxy | Squid allowlist, UniProt only, every request logged | Any site not on the list | `proxy: refuses …`, `proxy: allows …` |
 | Container | Apptainer `--contain --ipc --pid`, read-only image | Seeing the host filesystem and processes; changing the runtime | the 21 `(container)` checks |
 | Resources | Slurm cgroups | One job starving a node | `job sees its 2 allocated CPUs` |
 
@@ -117,17 +117,47 @@ Each entry: what we saw, why, the fix, and the general lesson.
     have boundaries on both sides; the pattern now requires them (gitleaks
     already did), and datasets no longer enter the record at all.
 
+17. **An identity-based rule is only as good as the identity.** The
+    egress rules matched UID 2001 on the assumption that the agent could
+    only ever be UID 2001. It could not become root, but `useradd` had
+    given it a subordinate UID range, and Apptainer's `uidmap` dependency
+    installs a setuid `newuidmap` that honours those ranges. Inside a
+    `--fakeroot` container the agent could therefore run processes under
+    other host UIDs, which the rules did not match. An independent review
+    found this; it was confirmed on the live cluster; my own check had
+    missed it because it only ever tested UID 2001. *Fix:* three layers:
+    no subordinate ranges (set before any user is created), no setuid bit
+    on `newuidmap`/`newgidmap`, and rules that also match UIDs 100000 and
+    up. *Lessons:* list every way a process can change identity before
+    trusting an identity-based control; test the property ("nothing the
+    agent starts gets out"), not one instance of it; and get someone else
+    to attack your sandbox.
+18. **A CONNECT proxy sees the name you ask for, not the site you get.**
+    Squid allowlisted `CONNECT download.pytorch.org:443`, but the TLS
+    handshake inside the tunnel names its own server. On a shared CDN
+    edge (CloudFront, Fastly) those can differ, so an allowlisted CDN
+    hostname is close to allowing the whole CDN. *Fix:* allow only what
+    the agent needs at run time; packages and weights are already in the
+    image, so that is UniProt, which has a dedicated address.
+19. **`find -size -1M` matches only empty files.** It rounds sizes up to
+    whole MiB. Found when the hardened harvest came back empty.
+20. **`set -e` ignores negated commands.** `! grep -q pattern file` cannot
+    fail a `set -e` script, so a guard written that way guards nothing.
+    Caught in review of my own fix before it shipped.
+
 ## Our host controls versus Apptainer
 
 Apptainer is a packaging and namespace tool. It changes what a job can
 *see* and makes the runtime a single portable artifact. It does not
 change what a job can *reach* or *who* it runs as. That is why the two
 compose: the container process keeps the agent's UID, so the host's
-UID-based firewall applies inside it unchanged.
+UID-based firewall applies inside it unchanged. That holds only while the
+agent cannot map itself to other UIDs; finding 17 is what happened when
+it could.
 
 | Concern | Host controls alone (ADR 0006) | What Apptainer adds (ADR 0007) | Still uncovered |
 |---|---|---|---|
-| Privilege | Unprivileged `agent`, no sudo | Runs as the same user in a user namespace; no setuid helper | Shared kernel |
+| Privilege | Unprivileged `agent`, no sudo | Runs as the same user in a user namespace. Its package depends on `uidmap`, a setuid helper that can map other UIDs; boot removes the setuid bit and the agent's subordinate ranges | Shared kernel |
 | Filesystem view | Unix permissions only; world-readable host files are visible | Host `/etc`, `/home`, `/tmp` out of view; empty private home; image read-only | `/shared` is visible by design |
 | Processes | `ps` shows every process on the node | Own PID namespace: sees only itself | |
 | Network | nftables per UID, proxy allowlist | Nothing: it shares the host's network namespace | DNS lookups as an exfiltration path |
@@ -181,8 +211,8 @@ head at boot.
   endpoints plus the proxy for apt).
 - Force jobs into the container (Slurm OCI support or a job-submit plugin).
 - Close DNS as an exfiltration path (Route 53 Resolver DNS Firewall).
-- Rewrite commit `b2ab241` (expired IMDS token) before the repo goes
-  public.
+- Check the TLS server name at the proxy (squid `ssl_bump peek` and
+  `splice`), so a shared-CDN host could go back on the allowlist safely.
 
 Reproduce every claim above on a live cluster:
 

@@ -41,6 +41,13 @@ special integration.
    UID, so the nftables rules and the proxy allowlist apply inside it
    unchanged. The container adds filesystem and process isolation; the
    host still owns network and identity.
+5. **The agent cannot map other UIDs.** The package depends on `uidmap`,
+   whose setuid `newuidmap` lets a user with a subordinate UID range run
+   container processes as other host UIDs, outside rule 4. Boot creates
+   users with no subordinate ranges, drops the setuid bit from
+   `newuidmap` and `newgidmap`, and the egress rules also match UIDs
+   100000 and up (added 2026-10-16 after review;
+   [notes, finding 17](../notes/agent-isolation.md)).
 
 ## Consequences
 

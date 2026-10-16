@@ -4,8 +4,10 @@
 connects to SSH hosts listed in `~/.ssh/config`. On a host where `sbatch`
 exists, it submits jobs to Slurm, polls them, and copies outputs back into
 the session. `scripts/ssh-config.sh` adds this cluster as `Host ehpc`, which
-logs in as `agent`: an unprivileged user with no sudo, no AWS credentials and
-no internet except an allowlist ([ADR 0006](adr/0006-agent-sandbox.md)).
+logs in as `agent`: an unprivileged user with no sudo and no route to the
+instance's AWS credentials, whose only internet access is a proxy that
+allows UniProt ([ADR 0006](adr/0006-agent-sandbox.md),
+[ADR 0007](adr/0007-apptainer.md)).
 
 ## Add the host
 
@@ -19,8 +21,9 @@ Slurm cluster built by github.com/nick-buser/ephemeral-hpc.
 Partition: cpu (default), nodes compute-[1-3], 2 CPUs and ~6.8 GB each.
 /shared is NFS from the head node and visible on every node.
 You are the unprivileged user "agent": no sudo, and the only internet
-  access is an allowlisting proxy (UniProt, PyPI, PyTorch, ESM weights)
-  that /etc/profile.d/ehpc.sh configures. Other hosts are refused.
+  access is a proxy that allows UniProt, configured by
+  /etc/profile.d/ehpc.sh. Other hosts are refused. Everything else you
+  need (packages, model weights) is inside the image.
 Python runs inside an Apptainer image: source /etc/profile.d/ehpc.sh,
   then use $EHPC_PY in place of python (in srun lines too). The image
   ($EHPC_SIF) holds torch 2.8 CPU, fair-esm 2.0, numpy, scikit-learn and

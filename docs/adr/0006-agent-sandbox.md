@@ -37,9 +37,11 @@ cards help, but an approval is a person skimming a script, not a boundary.
    `AmazonSSMManagedInstanceCore`, which nothing used and which can read
    every SSM parameter in the account.
 4. **An allowlisting proxy.** Squid on the head node forwards requests
-   from cluster addresses to an allowlist (UniProt, PyPI, PyTorch, the ESM
-   weights host), HTTPS only, and logs each one. The agent's login profile
-   points at it.
+   from cluster addresses to an allowlist, HTTPS only, and logs each one.
+   The agent's login profile points at it. The list is UniProt only:
+   packages and weights live in the image ([ADR 0007](0007-apptainer.md)),
+   and shared-CDN hosts cannot be allowlisted by name alone
+   ([notes, finding 18](../notes/agent-isolation.md)).
 5. **Guardrails the agent cannot reach.** EventBridge Scheduler terminates
    each node 10 minutes after its in-OS TTL, through a role that can only
    terminate instances tagged for this cluster. The in-OS shutdown and the
