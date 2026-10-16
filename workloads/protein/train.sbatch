@@ -10,5 +10,5 @@ set -euo pipefail
 # shellcheck source=/dev/null # installed by cloud-init from infra/templates/ehpc-profile.sh
 source /etc/profile.d/ehpc.sh
 export SRUN_CPUS_PER_TASK="$SLURM_CPUS_PER_TASK" # srun does not inherit it from sbatch
-srun "$EHPC_ENV/bin/python" "$EHPC_WORKLOADS/protein/train_probe.py" \
+srun "$EHPC_PY" "$EHPC_WORKLOADS/protein/train_probe.py" \
   --embeddings "${OUT:-out}" --out "${OUT:-out}" "$@"

@@ -20,7 +20,14 @@ systemctl daemon-reload
 for _ in $(seq 60); do mount /shared && break; sleep 10; done
 mountpoint -q /shared
 
-# 2. Cluster key, published by this cluster's head node (named by its ID).
+# 2. Apptainer, before slurmd, so no job lands on a node without it.
+curl -fsSLo /tmp/apptainer.deb "${apptainer_url}"
+echo "${apptainer_sha256}  /tmp/apptainer.deb" | sha256sum -c -
+# Unattended upgrades may hold the dpkg lock this early in boot.
+DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 install -y -q /tmp/apptainer.deb
+rm -f /tmp/apptainer.deb
+
+# 3. Cluster key, published by this cluster's head node (named by its ID).
 snap wait system seed.loaded
 snap install aws-cli --classic
 set +x # never trace the key
@@ -39,7 +46,7 @@ chown munge:munge /etc/munge/munge.key
 chmod 0400 /etc/munge/munge.key
 systemctl restart munge
 
-# 3. slurmd in configless mode: slurm.conf comes from the controller.
+# 4. slurmd in configless mode: slurm.conf comes from the controller.
 install -d -o slurm -g slurm /var/log/slurm /var/spool/slurmd
 systemctl enable slurmd
 for _ in $(seq 60); do

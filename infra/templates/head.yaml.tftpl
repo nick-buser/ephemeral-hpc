@@ -51,12 +51,17 @@ write_files:
     permissions: "0700"
     encoding: b64
     content: ${base64encode(init_script)}
-%{ for path, gz in workload_files ~}
+  - path: /shared/opt/ehpc/bin/esm-python
+    permissions: "0755"
+    encoding: b64
+    defer: true
+    content: ${base64encode(esm_python)}
+%{ for path, body in workload_files ~}
   - path: /shared/opt/ehpc/workloads/${path}
     permissions: "0755"
-    encoding: gz+b64
     defer: true
-    content: ${gz}
+    content: |
+      ${indent(6, body)}
 %{ endfor ~}
 runcmd:
   - [shutdown, -h, "+${ttl_minutes}"]

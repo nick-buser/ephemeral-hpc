@@ -16,8 +16,7 @@ nft list table inet ehpc_agent >/dev/null
 
 # 1. Shared filesystem: every node mounts /shared, so job workdirs, the
 #    Python environment and model weights exist once.
-install -d -m 1777 /shared/scratch /shared/cache /shared/cache/torch /shared/data /shared/results
-install -d -o ubuntu -g ubuntu /shared/envs
+install -d -m 1777 /shared/scratch /shared/data /shared/results
 install -d -o agent -g agent /shared/scratch/agent
 systemctl enable --now nfs-server
 exportfs -ra
@@ -89,15 +88,22 @@ sacctmgr -i add cluster "$cluster" || true
 systemctl enable slurmctld
 systemctl restart slurmctld
 
-# 6. Python environment for the workloads, built once on /shared.
-sudo -u ubuntu python3 -m venv /shared/envs/esm
-sudo -u ubuntu /shared/envs/esm/bin/pip install --quiet --no-cache-dir \
-  -r /shared/opt/ehpc/workloads/requirements.txt
-sudo -u ubuntu env TORCH_HOME=/shared/cache/torch /shared/envs/esm/bin/python - <<'PY'
-import esm
-esm.pretrained.esm2_t6_8M_UR50D()
-esm.pretrained.esm2_t12_35M_UR50D()
-PY
+# 6. The workload runtime: an Apptainer image holding Python, the pinned
+#    packages and the ESM-2 weights (docs/adr/0007-apptainer.md). Jobs run
+#    inside it; the hosts get no Python packages. Built as root from the
+#    definition in the repo; the agent can run it but not change it.
+curl -fsSLo /tmp/apptainer.deb "${apptainer_url}"
+echo "${apptainer_sha256}  /tmp/apptainer.deb" | sha256sum -c -
+# Unattended upgrades may hold the dpkg lock this early in boot.
+DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 install -y -q /tmp/apptainer.deb
+rm -f /tmp/apptainer.deb
+install -d -m 0755 /shared/containers
+cd /shared/opt/ehpc/workloads
+apptainer build --force /shared/containers/esm.sif container/esm.def \
+  > /var/log/ehpc-apptainer-build.log 2>&1
+cd /
+chmod 0644 /shared/containers/esm.sif
+sha256sum /shared/containers/esm.sif | tee /shared/containers/esm.sif.sha256
 
 # 7. The dataset, fetched once so agent jobs start from the same sample.
 sudo -u ubuntu python3 /shared/opt/ehpc/workloads/protein/fetch_uniprot.py

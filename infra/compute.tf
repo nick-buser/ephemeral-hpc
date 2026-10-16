@@ -33,6 +33,14 @@ locals {
   agent_uid        = 2001
   munge_param_root = "${local.param_prefix}munge-key"
 
+  # Apptainer from its GitHub release, pinned by version and checksum. The
+  # non-setuid build runs containers in user namespaces; its .deb ships the
+  # AppArmor profile Ubuntu 24.04 needs for that.
+  apptainer = {
+    url    = "https://github.com/apptainer/apptainer/releases/download/v1.5.4/apptainer_1.5.4_amd64.deb"
+    sha256 = "281cf9bd68f16b6f7c34a3a94d77668bc327b9c09db0412ce7890162734a97f7"
+  }
+
   slurm_conf = templatefile("${path.module}/templates/slurm.conf.tftpl", {
     cluster_name    = var.cluster_name
     head_ip         = local.head_ip
@@ -60,10 +68,12 @@ locals {
   }
 
   # The workload package ships with the cluster so every run uses the
-  # reviewed code in this repo, not something typed into a prompt.
+  # reviewed code in this repo, not something typed into a prompt. Plain
+  # text, not per-file gzip: user data is gzipped as a whole, and that one
+  # pass compresses across files (EC2 caps user data at 16 KiB).
   workload_files = {
-    for f in fileset("${path.module}/../workloads", "**/*.{py,sh,sbatch,txt}") :
-    f => base64gzip(file("${path.module}/../workloads/${f}"))
+    for f in fileset("${path.module}/../workloads", "**/*.{py,sh,sbatch,txt,def}") :
+    f => file("${path.module}/../workloads/${f}")
     if !startswith(f, "tests/")
   }
 }
@@ -118,10 +128,13 @@ resource "aws_instance" "head" {
       vpc_cidr  = var.vpc_cidr
       allowlist = var.agent_egress_allowlist
     })
+    esm_python = file("${path.module}/templates/esm-python.sh")
     init_script = templatefile("${path.module}/templates/head-init.sh.tftpl", {
       region           = var.region
       cluster_name     = var.cluster_name
       munge_param_root = local.munge_param_root
+      apptainer_url    = local.apptainer.url
+      apptainer_sha256 = local.apptainer.sha256
     })
   })))
   user_data_replace_on_change = true
@@ -172,8 +185,10 @@ resource "aws_instance" "compute" {
     node_name   = each.key
     ttl_minutes = local.ttl_minutes
     init_script = templatefile("${path.module}/templates/compute-init.sh.tftpl", {
-      region      = var.region
-      munge_param = "${local.munge_param_root}/${aws_instance.head.id}"
+      region           = var.region
+      munge_param      = "${local.munge_param_root}/${aws_instance.head.id}"
+      apptainer_url    = local.apptainer.url
+      apptainer_sha256 = local.apptainer.sha256
     })
   })))
   user_data_replace_on_change = true

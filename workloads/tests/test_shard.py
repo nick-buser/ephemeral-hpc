@@ -6,6 +6,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "protein"))
 from shard import (  # noqa: E402
     Protein,
+    first_host,
     in_test_split,
     read_dataset,
     shard_by_tokens,
@@ -76,3 +77,18 @@ def test_placement_outside_slurm_is_single_process():
 def test_placement_rejects_rank_outside_world():
     with pytest.raises(ValueError):
         slurm_placement({"SLURM_PROCID": "3", "SLURM_NTASKS": "3"})
+
+
+@pytest.mark.parametrize(
+    ("nodelist", "expected"),
+    [
+        ("compute-[1-3]", "compute-1"),
+        ("compute-[2,5-6]", "compute-2"),
+        ("compute-[07,09-12],gpu-1", "compute-07"),
+        ("head,compute-[1-3]", "head"),
+        ("compute-3", "compute-3"),
+        ("a1,a2", "a1"),
+    ],
+)
+def test_first_host_reads_slurm_hostlists(nodelist, expected):
+    assert first_host(nodelist) == expected

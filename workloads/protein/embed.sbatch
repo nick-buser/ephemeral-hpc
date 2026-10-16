@@ -11,7 +11,7 @@ set -euo pipefail
 # shellcheck source=/dev/null # installed by cloud-init from infra/templates/ehpc-profile.sh
 source /etc/profile.d/ehpc.sh
 export SRUN_CPUS_PER_TASK="$SLURM_CPUS_PER_TASK" # srun does not inherit it from sbatch
-py="$EHPC_ENV/bin/python"
+py="$EHPC_PY" # python inside the cluster's Apptainer image
 here="$EHPC_WORKLOADS/protein"
 
 srun --nodes=1 --ntasks=1 "$py" "$here/fetch_uniprot.py"

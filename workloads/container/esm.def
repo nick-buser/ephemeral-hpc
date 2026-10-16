@@ -1,0 +1,32 @@
+# The workload's whole runtime: Python, the pinned packages and the ESM-2
+# weights. Built once per cluster on the head node, run read-only by every
+# job (docs/adr/0007-apptainer.md). The base is pinned by digest, so a
+# rebuild changes only if this file or requirements.txt does.
+# Apptainer rejects tag+digest references, so the tag lives here:
+# python:3.12-slim-bookworm, resolved 2026-10-16.
+Bootstrap: docker
+From: python@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
+
+%labels
+    org.opencontainers.image.source https://github.com/nick-buser/ephemeral-hpc
+    org.opencontainers.image.description ESM-2 embedding and DDP probe runtime
+
+%files
+    requirements.txt /opt/ehpc/requirements.txt
+
+%environment
+    export TORCH_HOME=/opt/torch
+    export PYTHONDONTWRITEBYTECODE=1
+    export PYTHONUNBUFFERED=1
+
+%post
+    pip install --no-cache-dir -r /opt/ehpc/requirements.txt
+    # Weights inside the image: a job needs no network to load the model.
+    TORCH_HOME=/opt/torch python -c 'import esm; esm.pretrained.esm2_t6_8M_UR50D(); esm.pretrained.esm2_t12_35M_UR50D()'
+    chmod -R a+rX /opt/torch
+
+%test
+    python -c 'import esm, numpy, sklearn, torch; print("torch", torch.__version__, "threads", torch.get_num_threads())'
+
+%runscript
+    exec python "$@"

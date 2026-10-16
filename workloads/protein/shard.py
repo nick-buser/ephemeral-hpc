@@ -77,3 +77,15 @@ def slurm_placement(env: dict[str, str] | None = None) -> Placement:
     if not 0 <= rank < world:
         raise ValueError(f"rank {rank} outside world of {world}")
     return Placement(rank, world, cpus)
+
+
+def first_host(nodelist: str) -> str:
+    """The first hostname in a Slurm hostlist such as "compute-[1-3]",
+    "compute-[07,09-12],gpu-1" or "head,compute-2". Rank 0 runs there, so
+    it is the rendezvous address. Parsed here because scontrol is not inside
+    the container the job runs in."""
+    head, _, rest = nodelist.partition("[")
+    if not rest or "," in head:
+        return nodelist.split(",")[0]
+    first = rest.split("]")[0].split(",")[0].split("-")[0]
+    return head + first  # keeps zero padding: "07" stays "07"

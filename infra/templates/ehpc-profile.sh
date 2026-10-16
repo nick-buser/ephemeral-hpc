@@ -1,9 +1,9 @@
 # Installed as /etc/profile.d/ehpc.sh on every node. Login shells (including
 # Claude Science's SSH probe, which looks for $SCRATCH) see the shared paths.
 export SCRATCH="/shared/scratch/$USER"
-export EHPC_ENV=/shared/envs/esm
 export EHPC_WORKLOADS=/shared/opt/ehpc/workloads
-export TORCH_HOME=/shared/cache/torch
+export EHPC_SIF=/shared/containers/esm.sif  # Python, packages, ESM-2 weights
+export EHPC_PY=/shared/opt/ehpc/bin/esm-python  # python inside EHPC_SIF
 [ -d "$SCRATCH" ] || mkdir -p "$SCRATCH" 2>/dev/null || true
 
 # The agent user has no direct route out (agent-egress.nft); the domains it

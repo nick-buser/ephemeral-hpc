@@ -55,7 +55,7 @@ when=$(busctl get-property org.freedesktop.login1 /org/freedesktop/login1 \
   org.freedesktop.login1.Manager ScheduledShutdown 2>/dev/null | awk '{print $3}')
 [ "${when:-0}" -gt 0 ]; result $? "TTL shutdown still scheduled ($(date -u -d "@$(( ${when:-0} / 1000000 ))" +%H:%MZ 2>/dev/null))"
 denied "workload code is read-only" touch /shared/opt/ehpc/workloads/.sandbox-check
-denied "shared Python environment is read-only" touch /shared/envs/esm/.sandbox-check
+denied "container image is read-only" touch /shared/containers/esm.sif
 allowed "own scratch directory is writable" touch "$SCRATCH/.sandbox-check"
 
 # The same egress checks on every compute node, as Slurm runs agent jobs.
@@ -78,7 +78,35 @@ out=$(srun --nodes=3 --ntasks-per-node=1 --cpus-per-task=2 bash "$node_check" 2>
 echo "$out" | sort
 fails=$((fails + $(grep -c '^FAIL' <<<"$out")))
 [ "$(grep -c '^PASS' <<<"$out")" = 15 ]; result $? "all three compute nodes answered"
-rm -f "$node_check" "$SCRATCH/.sandbox-check"
+
+# And inside the Apptainer image every job runs in ($EHPC_PY).
+ctr_check="$SCRATCH/.sandbox-container-check.py"
+cat >"$ctr_check" <<'PY'
+import os, socket, urllib.request as u
+h = socket.gethostname()
+def r(ok, name): print(("PASS" if ok else "FAIL") + f"  {h} (container): {name}")
+def denied(f):
+    try:
+        f()
+        return False
+    except Exception:
+        return True
+direct = u.build_opener(u.ProxyHandler({}))
+imds = u.Request("http://169.254.169.254/latest/api/token", method="PUT",
+                 headers={"X-aws-ec2-metadata-token-ttl-seconds": "60"})
+r(denied(lambda: direct.open(imds, timeout=5)), "no instance metadata service")
+r(denied(lambda: direct.open("https://example.com", timeout=5)), "no direct internet")
+r(not denied(lambda: u.urlopen("https://rest.uniprot.org/uniprotkb/P69905.fasta", timeout=30)), "allowlisted domain through the proxy")
+r(os.listdir(os.path.expanduser("~")) == [], "private, empty home")
+r(not os.path.exists("/etc/munge"), "host /etc not visible")
+r(open("/proc/1/cmdline").read().startswith("appinit"), "own PID namespace")
+r(denied(lambda: open("/opt/ehpc/requirements.txt", "a")), "image is read-only")
+PY
+out=$(srun --nodes=3 --ntasks-per-node=1 --cpus-per-task=2 "$EHPC_PY" "$ctr_check" 2>&1 </dev/null)
+echo "$out" | sort
+fails=$((fails + $(grep -c '^FAIL' <<<"$out")))
+[ "$(grep -c '^PASS' <<<"$out")" = 21 ]; result $? "all three compute nodes answered from inside the container"
+rm -f "$node_check" "$ctr_check" "$SCRATCH/.sandbox-check"
 echo "checks-complete"
 exit "$fails"
 AGENT

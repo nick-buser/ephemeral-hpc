@@ -12,7 +12,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -26,7 +25,7 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler, TensorDataset
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from shard import in_test_split, read_dataset, slurm_placement  # noqa: E402
+from shard import first_host, in_test_split, read_dataset, slurm_placement  # noqa: E402
 
 
 def rendezvous_env(port: int) -> None:
@@ -35,13 +34,8 @@ def rendezvous_env(port: int) -> None:
     os.environ.setdefault("RANK", str(place.rank))
     os.environ.setdefault("WORLD_SIZE", str(place.world_size))
     if "MASTER_ADDR" not in os.environ:
-        nodelist = os.environ.get("SLURM_JOB_NODELIST")
-        first = (
-            subprocess.check_output(["scontrol", "show", "hostnames", nodelist], text=True).split()[0]
-            if nodelist
-            else "127.0.0.1"
-        )
-        os.environ["MASTER_ADDR"] = first
+        nodelist = os.environ.get("SLURM_STEP_NODELIST") or os.environ.get("SLURM_JOB_NODELIST")
+        os.environ["MASTER_ADDR"] = first_host(nodelist) if nodelist else "127.0.0.1"
     os.environ.setdefault("MASTER_PORT", str(port))
     torch.set_num_threads(place.cpus)
 
