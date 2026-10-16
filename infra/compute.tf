@@ -193,6 +193,14 @@ resource "aws_instance" "compute" {
   })))
   user_data_replace_on_change = true
 
+  # A compute node is bound to its head: the munge key it fetched, and its
+  # hard NFS mount. Without this, replacing the head plans the compute
+  # nodes as in-place updates (their user data is only known after apply),
+  # leaving them pointed at a head that no longer exists.
+  lifecycle {
+    replace_triggered_by = [aws_instance.head.id]
+  }
+
   tags = {
     Name = "${var.cluster_name}-${each.key}"
     Role = "compute"
