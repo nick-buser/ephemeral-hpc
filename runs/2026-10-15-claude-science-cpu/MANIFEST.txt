@@ -1,5 +1,5 @@
 collected: 2026-10-16T05:21:12Z
-repo: 0a83f17
+repo: 0a83f17 Give Slurm the real core/thread layout so jobs get both vCPUs
 20	./aws/cloudwatch-ec2.json
 4	./aws/instances.json
 4	./claude-science/compute-jobs.tsv

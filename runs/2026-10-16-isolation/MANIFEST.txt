@@ -1,5 +1,5 @@
 collected: 2026-10-16T06:52:25Z
-repo: 7a4824a
+repo: 7a4824a ADR 0007 (Apptainer), isolation study notes, docs for the container
 8	./aws/cloudwatch-ec2.json
 4	./aws/instances.json
 4	./jobs/agent/smoke-apptainer/esm-embed-3.log

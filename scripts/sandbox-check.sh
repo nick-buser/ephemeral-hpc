@@ -132,14 +132,19 @@ run_checks() {
 
   echo
   echo "## As the operator"
-  local schedules
-  schedules=$(aws_cli scheduler list-schedules --name-prefix ehpc-ttl- \
-    --query 'Schedules[].Name' --output text | wc -w | tr -d ' ')
-  if [[ "$schedules" -ge 4 ]]; then
-    echo "PASS  out-of-instance TTL: $schedules EventBridge schedules"
-  else
-    echo "FAIL  out-of-instance TTL: $schedules EventBridge schedules"
+  local names schedules
+  if ! names=$(aws_cli scheduler list-schedules --name-prefix ehpc-ttl- \
+    --query 'Schedules[].Name' --output text 2>&1); then
+    echo "FAIL  out-of-instance TTL: could not query EventBridge (${names##*: })"
     agent_fails=$((agent_fails + 1))
+  else
+    schedules=$(wc -w <<<"$names" | tr -d ' ')
+    if [[ "$schedules" -ge 4 ]]; then
+      echo "PASS  out-of-instance TTL: $schedules EventBridge schedules"
+    else
+      echo "FAIL  out-of-instance TTL: $schedules EventBridge schedules"
+      agent_fails=$((agent_fails + 1))
+    fi
   fi
   if ssh "${ssh_opts[@]}" "$admin_alias" 'sudo nft list chain inet ehpc_agent output' | grep -q '100000-4294967294'; then
     echo "PASS  egress rules also cover subordinate UIDs (100000 and up)"

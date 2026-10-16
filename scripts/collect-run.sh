@@ -143,7 +143,7 @@ fi
 
 {
   echo "collected: $end"
-  echo "repo: $(git -C "$repo_root" rev-parse --short HEAD)"
+  echo "repo: $(git -C "$repo_root" log -1 --format="%h %s")"
   (cd "$out" && find . -type f | sort | xargs du -k)
 } >"$out/MANIFEST.txt"
 echo "wrote $out ($(du -sh "$out" | cut -f1))"

@@ -1,0 +1,81 @@
+# sandbox check, 2026-10-16T09:57:51Z
+
+## As the agent, on the head node and each compute node
+PASS  logged in as agent (uid 2001), groups: agent
+PASS  no sudo
+PASS  cannot read the cluster's munge key
+PASS  no subordinate UID/GID range for the agent
+PASS  newuidmap/newgidmap are not setuid
+PASS  firewall: no instance metadata service, so no AWS credentials
+PASS  proxy: will not forward to the metadata service either
+PASS  firewall: no direct internet
+PASS  proxy: refuses a domain not on the allowlist
+PASS  proxy: refuses a bare IP (no reverse-DNS match)
+PASS  proxy: refuses PyPI (shared CDN, not on the allowlist)
+PASS  proxy: allows an allowlisted domain (UniProt)
+PASS  cannot cancel the scheduled TTL shutdown
+PASS  TTL shutdown still scheduled (13:42Z)
+PASS  workload code is read-only
+PASS  container image is read-only
+PASS  own scratch directory is writable
+PASS  compute-1: allowlisted domain through the head node's proxy
+PASS  compute-1: cluster network open (slurmctld on head:6817)
+PASS  compute-1: firewall: no direct internet
+PASS  compute-1: firewall: no instance metadata service
+PASS  compute-1: job sees its 2 allocated CPUs (nproc 2)
+PASS  compute-1: no subordinate IDs, newuidmap not setuid
+PASS  compute-2: allowlisted domain through the head node's proxy
+PASS  compute-2: cluster network open (slurmctld on head:6817)
+PASS  compute-2: firewall: no direct internet
+PASS  compute-2: firewall: no instance metadata service
+PASS  compute-2: job sees its 2 allocated CPUs (nproc 2)
+PASS  compute-2: no subordinate IDs, newuidmap not setuid
+PASS  compute-3: allowlisted domain through the head node's proxy
+PASS  compute-3: cluster network open (slurmctld on head:6817)
+PASS  compute-3: firewall: no direct internet
+PASS  compute-3: firewall: no instance metadata service
+PASS  compute-3: job sees its 2 allocated CPUs (nproc 2)
+PASS  compute-3: no subordinate IDs, newuidmap not setuid
+PASS  all three compute nodes answered
+PASS  compute-1 (container): allowlisted domain through the proxy
+PASS  compute-1 (container): host /etc not visible
+PASS  compute-1 (container): image is read-only
+PASS  compute-1 (container): no direct internet
+PASS  compute-1 (container): no instance metadata service
+PASS  compute-1 (container): own PID namespace
+PASS  compute-1 (container): private, empty home
+PASS  compute-2 (container): allowlisted domain through the proxy
+PASS  compute-2 (container): host /etc not visible
+PASS  compute-2 (container): image is read-only
+PASS  compute-2 (container): no direct internet
+PASS  compute-2 (container): no instance metadata service
+PASS  compute-2 (container): own PID namespace
+PASS  compute-2 (container): private, empty home
+PASS  compute-3 (container): allowlisted domain through the proxy
+PASS  compute-3 (container): host /etc not visible
+PASS  compute-3 (container): image is read-only
+PASS  compute-3 (container): no direct internet
+PASS  compute-3 (container): no instance metadata service
+PASS  compute-3 (container): own PID namespace
+PASS  compute-3 (container): private, empty home
+PASS  all three compute nodes answered from inside the container
+
+## As the operator
+FAIL  out-of-instance TTL: could not query EventBridge (Your session has expired. Please reauthenticate using 'aws login'.)
+PASS  egress rules also cover subordinate UIDs (100000 and up)
+
+## Evidence: denied egress (kernel log) and proxy decisions (squid)
+2026-10-16T09:57:18+00:00 head kernel: ehpc-agent-egress-deny IN= OUT=ens5 DST=104.20.23.154 DF PROTO=TCP DPT=443 SYN 
+2026-10-16T09:57:18+00:00 head kernel: ehpc-agent-egress-deny IN= OUT=ens5 DST=172.66.147.243 DF PROTO=TCP DPT=443 SYN 
+2026-10-16T09:57:51+00:00 head kernel: ehpc-agent-egress-deny IN= OUT=ens5 DST=169.254.169.254 DF PROTO=TCP DPT=80 SYN 
+2026-10-16T09:57:51+00:00 head kernel: ehpc-agent-egress-deny IN= OUT=ens5 DST=104.20.23.154 DF PROTO=TCP DPT=443 SYN 
+2026-10-16T09:57:51+00:00 head kernel: ehpc-agent-egress-deny IN= OUT=ens5 DST=172.66.147.243 DF PROTO=TCP DPT=443 SYN 
+
+TCP_DENIED/403 CONNECT pypi.org:443
+TCP_TUNNEL/200 CONNECT rest.uniprot.org:443
+TCP_TUNNEL/200 CONNECT rest.uniprot.org:443
+TCP_TUNNEL/200 CONNECT rest.uniprot.org:443
+TCP_TUNNEL/200 CONNECT rest.uniprot.org:443
+TCP_TUNNEL/200 CONNECT rest.uniprot.org:443
+TCP_TUNNEL/200 CONNECT rest.uniprot.org:443
+TCP_TUNNEL/200 CONNECT rest.uniprot.org:443
