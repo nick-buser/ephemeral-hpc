@@ -12,7 +12,7 @@
 #   nodes/    per-node boot log, Slurm daemon logs, boot timing
 #   aws/      instances and the run window's CloudWatch metrics
 #
-# The account ID, the operator's public IP and the head's public IP are
+# The account ID, the operator's public IP and every node's public IP are
 # replaced with placeholders, then the tree is scanned for key material.
 # Review the diff before committing anyway.
 set -euo pipefail
@@ -61,8 +61,11 @@ on_head "sacct -a --json -S 2000-01-01" >"$out/slurm/sacct.json" 2>/dev/null ||
 on_head 'scontrol show config; echo; scontrol show nodes; echo; sinfo -N -l' \
   >"$out/slurm/cluster.txt"
 
-# 2. The scratch tree, minus bulk outputs.
-on_head 'tar -C /shared/scratch -czf - --exclude="*.npz" --exclude="*.pt" --exclude="*.npy" --exclude="*.tsv" --exclude="*.sif" .' |
+# 2. From the scratch tree, which the agent can write to, only regular
+#    files of known text types under 1 MiB (`-size -1M` would round up and
+#    match only empty files): no symlinks, no binaries, no
+#    datasets, nothing planted under another name.
+on_head 'cd /shared/scratch && find . -type f -size -1024k \( -name "*.log" -o -name "*.out" -o -name "*.err" -o -name "*.json" -o -name "*.csv" -o -name "*.txt" -o -name "*.sh" -o -name "*.py" -o -name "*.sbatch" -o -name "*.def" \) -print0 | tar --null -T - -czf -' |
   tar -C "$out/jobs" -xzf -
 
 # 3. Per-node logs and boot timing.
@@ -113,14 +116,22 @@ aws_cli cloudwatch get-metric-data --start-time "$start" --end-time "$end" \
 # 5. Scrub, then refuse to leave anything that looks like a secret.
 account=$(aws_cli sts get-caller-identity --query Account --output text)
 operator_ip=$(curl -fsS https://checkip.amazonaws.com)
-head_ip=$(ssh -G "$alias_name" | awk '$1=="hostname"{print $2}')
-{ grep -rIlE -e "$account" -e "${operator_ip//./\\.}" -e "${head_ip//./\\.}" -e 'X-aws-ec2-metadata-token: [A-Za-z0-9]' -e '^\++ *token=[A-Za-z0-9]' "$out" || true; } | while read -r f; do
-  sed -i.bak \
-    -e "s/${account}/<account-id>/g" \
-    -e 's/\(X-aws-ec2-metadata-token: \)[A-Za-z0-9_=-]*/\1<redacted>/g' \
-    -e 's/^\(+* *token=\)[A-Za-z0-9_=-]*/\1<redacted>/' \
-    -e "s/${operator_ip//./\\.}/<operator-ip>/g" \
-    -e "s/${head_ip//./\\.}/<head-public-ip>/g" "$f"
+# Every node's public IP, not just the head's: compute nodes have them too.
+# shellcheck disable=SC2207 # whitespace-separated IPs
+node_ips=($(aws_cli ec2 describe-instances \
+  --filters Name=tag:Project,Values=ephemeral-hpc Name=instance-state-name,Values=running \
+  --query 'Reservations[].Instances[].PublicIpAddress' --output text))
+patterns=(-e "$account" -e 'X-aws-ec2-metadata-token: [A-Za-z0-9]' -e '^\++ *token=[A-Za-z0-9]' -e "${operator_ip//./\\.}")
+subs=(-e "s/${account}/<account-id>/g"
+  -e 's/\(X-aws-ec2-metadata-token: \)[A-Za-z0-9_=-]*/\1<redacted>/g'
+  -e 's/^\(+* *token=\)[A-Za-z0-9_=-]*/\1<redacted>/'
+  -e "s/${operator_ip//./\\.}/<operator-ip>/g")
+for ip in "${node_ips[@]}"; do
+  patterns+=(-e "${ip//./\\.}")
+  subs+=(-e "s/${ip//./\\.}/<node-public-ip>/g")
+done
+{ grep -rIlE "${patterns[@]}" "$out" || true; } | while read -r f; do
+  sed -i.bak "${subs[@]}" "$f"
   rm -f "$f.bak"
 done
 # Key IDs need boundaries: protein sequences are long runs of capitals and
