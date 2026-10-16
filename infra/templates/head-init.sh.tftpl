@@ -24,8 +24,11 @@ aws() { /snap/bin/aws --region "$region" "$@"; }
 # 3. Cluster key. A fresh munge key, published to SSM Parameter Store as a
 #    SecureString under this instance's ID; compute nodes read it with their
 #    own instance role. Keys left by earlier clusters are deleted.
+set +x # never trace the IMDS session token
 token=$(curl -fsS -X PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
 instance_id=$(curl -fsS -H "X-aws-ec2-metadata-token: $token" http://169.254.169.254/latest/meta-data/instance-id)
+unset token
+set -x
 for stale in $(aws ssm get-parameters-by-path --path "$param_root" --query 'Parameters[].Name' --output text); do
   [[ "$stale" == "$param_root/$instance_id" ]] || aws ssm delete-parameter --name "$stale"
 done

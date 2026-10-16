@@ -114,14 +114,16 @@ aws_cli cloudwatch get-metric-data --start-time "$start" --end-time "$end" \
 account=$(aws_cli sts get-caller-identity --query Account --output text)
 operator_ip=$(curl -fsS https://checkip.amazonaws.com)
 head_ip=$(ssh -G "$alias_name" | awk '$1=="hostname"{print $2}')
-{ grep -rIlF -e "$account" -e "$operator_ip" -e "$head_ip" "$out" || true; } | while read -r f; do
+{ grep -rIlE -e "$account" -e "${operator_ip//./\\.}" -e "${head_ip//./\\.}" -e 'X-aws-ec2-metadata-token: [A-Za-z0-9]' -e '^\++ *token=[A-Za-z0-9]' "$out" || true; } | while read -r f; do
   sed -i.bak \
     -e "s/${account}/<account-id>/g" \
+    -e 's/\(X-aws-ec2-metadata-token: \)[A-Za-z0-9_=-]*/\1<redacted>/g' \
+    -e 's/^\(+* *token=\)[A-Za-z0-9_=-]*/\1<redacted>/' \
     -e "s/${operator_ip//./\\.}/<operator-ip>/g" \
     -e "s/${head_ip//./\\.}/<head-public-ip>/g" "$f"
   rm -f "$f.bak"
 done
-if grep -rIlE 'BEGIN [A-Z ]*PRIVATE KEY|StoragePass|aws_secret_access_key|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}' "$out"; then
+if grep -rIlE 'BEGIN [A-Z ]*PRIVATE KEY|StoragePass|aws_secret_access_key|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|metadata-token: [A-Za-z0-9]|^\++ *token=[A-Za-z0-9]' "$out"; then
   echo "refusing: the files above look like they hold secrets" >&2
   exit 1
 fi
