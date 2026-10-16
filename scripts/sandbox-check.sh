@@ -27,13 +27,10 @@ aws_cli() {
   fi
 }
 
-run_checks() {
-  echo "# sandbox check, $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo
-  echo "## As the agent, on the head node and each compute node"
-  # The agent-side checks run remotely; the heredoc is not expanded here.
-  local agent_fails=0
-  ssh "${ssh_opts[@]}" "$agent_alias" 'bash -s' <<'AGENT' || agent_fails=$?
+# The checks that run on the cluster as the agent. Quoted heredoc: nothing
+# here expands on the operator's machine.
+agent_checks() {
+  cat <<'AGENT'
 set -u
 source /etc/profile.d/ehpc.sh
 fails=0
@@ -44,11 +41,14 @@ allowed() { local name="$1"; shift; "$@" >/dev/null 2>&1; result $? "$name"; }
 [ "$(id -un)" = agent ]; result $? "logged in as agent (uid $(id -u)), groups: $(id -Gn)"
 denied "no sudo" sudo -n true
 denied "cannot read the cluster's munge key" cat /etc/munge/munge.key
-denied "no instance metadata service, so no AWS credentials" \
+denied "firewall: no instance metadata service, so no AWS credentials" \
+  curl -fsS -m 5 --noproxy '*' -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token
+denied "proxy: will not forward to the metadata service either" \
   curl -fsS -m 5 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token
-denied "no direct internet" curl -fsS -m 5 --noproxy '*' -o /dev/null https://example.com
-denied "proxy refuses a domain not on the allowlist" curl -fsS -m 10 -o /dev/null https://example.com
-allowed "proxy allows an allowlisted domain (UniProt)" \
+denied "firewall: no direct internet" curl -fsS -m 5 --noproxy '*' -o /dev/null https://example.com
+denied "proxy: refuses a domain not on the allowlist" curl -fsS -m 10 -o /dev/null https://example.com
+denied "proxy: refuses a bare IP (no reverse-DNS match)" curl -fsS -m 10 -o /dev/null https://1.1.1.1
+allowed "proxy: allows an allowlisted domain (UniProt)" \
   curl -fsS -m 30 -o /dev/null https://rest.uniprot.org/uniprotkb/P69905.fasta
 denied "cannot cancel the scheduled TTL shutdown" shutdown -c
 when=$(busctl get-property org.freedesktop.login1 /org/freedesktop/login1 \
@@ -63,23 +63,39 @@ node_check="$SCRATCH/.sandbox-node-check.sh"
 cat >"$node_check" <<'NODE'
 h=$(hostname)
 r() { if [ "$1" = 0 ]; then echo "PASS  $h: $2"; else echo "FAIL  $h: $2"; fi; }
-curl -fsS -m 5 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token >/dev/null 2>&1
-[ $? != 0 ]; r $? "no instance metadata service"
+curl -fsS -m 5 --noproxy '*' -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token >/dev/null 2>&1
+[ $? != 0 ]; r $? "firewall: no instance metadata service"
 curl -fsS -m 5 --noproxy '*' -o /dev/null https://example.com >/dev/null 2>&1
-[ $? != 0 ]; r $? "no direct internet"
+[ $? != 0 ]; r $? "firewall: no direct internet"
 curl -fsS -m 30 -o /dev/null https://rest.uniprot.org/uniprotkb/P69905.fasta >/dev/null 2>&1
 r $? "allowlisted domain through the head node's proxy"
 timeout 5 bash -c 'exec 3<>/dev/tcp/head/6817' 2>/dev/null
 r $? "cluster network open (slurmctld on head:6817)"
 [ "$(nproc)" = "$SLURM_CPUS_PER_TASK" ]; r $? "job sees its $SLURM_CPUS_PER_TASK allocated CPUs (nproc $(nproc))"
 NODE
-out=$(srun --nodes=3 --ntasks-per-node=1 --cpus-per-task=2 bash "$node_check" 2>&1)
+# </dev/null: srun forwards stdin, and stdin here is the rest of this script.
+out=$(srun --nodes=3 --ntasks-per-node=1 --cpus-per-task=2 bash "$node_check" 2>&1 </dev/null)
 echo "$out" | sort
 fails=$((fails + $(grep -c '^FAIL' <<<"$out")))
 [ "$(grep -c '^PASS' <<<"$out")" = 15 ]; result $? "all three compute nodes answered"
 rm -f "$node_check" "$SCRATCH/.sandbox-check"
+echo "checks-complete"
 exit "$fails"
 AGENT
+}
+
+run_checks() {
+  echo "# sandbox check, $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo
+  echo "## As the agent, on the head node and each compute node"
+  local agent_fails=0 agent_out
+  agent_out=$(agent_checks | ssh "${ssh_opts[@]}" "$agent_alias" 'bash -s' 2>&1) || agent_fails=$?
+  # A check that stops early must not read as a pass.
+  grep -v '^checks-complete$' <<<"$agent_out"
+  if ! grep -q '^checks-complete$' <<<"$agent_out"; then
+    echo "FAIL  agent checks stopped before the end"
+    agent_fails=$((agent_fails + 1))
+  fi
 
   echo
   echo "## As the operator"

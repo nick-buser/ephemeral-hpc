@@ -1,14 +1,19 @@
-# Loaded at boot on every node, before anyone can log in. The agent user
-# (uid ${agent_uid}) may talk to the loopback interface and to other cluster
-# nodes: Slurm, NFS, torch.distributed and the head node's proxy. Everything
-# else it starts is rejected and logged, including the instance metadata
-# service, so the agent never sees the node's AWS credentials. Replies on
-# connections made to the agent (its own SSH session) still flow. Other
-# users and system services are not affected.
+# Loaded at boot on every node, before anyone can log in. Packets from the
+# agent user (uid ${agent_uid}) may go to the loopback interface and to other
+# cluster nodes: Slurm, NFS, torch.distributed and the head node's proxy.
+# Everything else it starts is rejected and logged, including the instance
+# metadata service, so the agent never sees the node's AWS credentials.
+# Replies on connections made to the agent (its own SSH session) still flow.
+#
+# The match is positive (skuid == agent, then jump). A negated match would
+# also catch packets the kernel sends with no owning socket (IPv6 multicast
+# reports, TCP resets), because skuid cannot be evaluated for them.
 table inet ehpc_agent {
   chain output {
     type filter hook output priority filter; policy accept;
-    meta skuid != ${agent_uid} accept
+    meta skuid ${agent_uid} jump agent
+  }
+  chain agent {
     oif "lo" accept
     ct state established,related accept
     ip daddr ${vpc_cidr} accept
