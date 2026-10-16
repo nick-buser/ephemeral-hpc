@@ -30,3 +30,6 @@ __pycache__/
 # Workload outputs land under results/ only when curated
 workloads/**/out/
 *.npy
+
+# Bulk run outputs stay on the cluster; runs/ keeps the record
+*.npz
