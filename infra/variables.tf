@@ -77,7 +77,7 @@ variable "ttl_hours" {
 variable "idle_minutes" {
   description = "A node whose peak CPU stays under 5% this long is terminated by a CloudWatch alarm."
   type        = number
-  default     = 60
+  default     = 120
 
   validation {
     condition     = var.idle_minutes >= 15 && var.idle_minutes % 5 == 0

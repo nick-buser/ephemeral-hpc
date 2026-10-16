@@ -24,7 +24,7 @@ Pipeline code: $EHPC_WORKLOADS/protein (fetch_uniprot.py, embed.py,
   export SRUN_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK
 Dataset: /shared/data/uniprot_human.tsv (fetch_uniprot.py creates it).
 ESM-2 weights are cached in $TORCH_HOME on /shared.
-The cluster terminates itself after 4 hours or 60 idle minutes.
+The cluster terminates itself after 4 hours or 120 idle minutes.
 ```
 
 ## The prompt

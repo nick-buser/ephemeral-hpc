@@ -82,7 +82,7 @@ scripts/tf.sh infra destroy
 ```
 
 If you forget, every node powers off `ttl_hours` (default 4) after boot,
-and powering off terminates it. A node idle for `idle_minutes` (default 60)
+and powering off terminates it. A node idle for `idle_minutes` (default 120)
 is terminated by its CloudWatch alarm. `terraform apply` rebuilds anything
 that has gone. `destroy` cleans up the VPC, IAM roles and alarms, which cost
 nothing while idle but should not linger.
@@ -95,6 +95,6 @@ nothing while idle but should not linger.
 | `compute_instance_type` | `m7i-flex.large` | Slurm CPUs and memory follow the instance type automatically |
 | `head_instance_type` | `t3.small` | Runs slurmctld, slurmdbd, MariaDB, NFS |
 | `ttl_hours` | 4 | Also the partition's MaxTime |
-| `idle_minutes` | 60 | Multiple of 5 |
+| `idle_minutes` | 120 | Multiple of 5. Counts from the last job, and an agent waiting on a human approval card looks idle |
 
 Pass them as `TF_VAR_<name>` or `-var` through `scripts/tf.sh`.
