@@ -101,6 +101,7 @@ resource "aws_instance" "head" {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
     http_put_response_hop_limit = 1
+    http_protocol_ipv6          = "disabled" # fd00:ec2::254 stays off; sandbox-check.sh probes it
   }
 
   root_block_device {
@@ -163,6 +164,7 @@ resource "aws_instance" "compute" {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
     http_put_response_hop_limit = 1
+    http_protocol_ipv6          = "disabled" # fd00:ec2::254 stays off; sandbox-check.sh probes it
   }
 
   root_block_device {

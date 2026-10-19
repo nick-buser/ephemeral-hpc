@@ -73,6 +73,14 @@ run "nodes_require_imdsv2_encrypt_disks_and_self_terminate" {
 
   assert {
     condition = alltrue(concat(
+      [aws_instance.head.metadata_options[0].http_protocol_ipv6 == "disabled"],
+      [for n in aws_instance.compute : n.metadata_options[0].http_protocol_ipv6 == "disabled"],
+    ))
+    error_message = "The IPv6 metadata endpoint (fd00:ec2::254) must stay disabled: nothing uses it, and it is a second path to the node's credentials."
+  }
+
+  assert {
+    condition = alltrue(concat(
       [aws_instance.head.root_block_device[0].encrypted],
       [for n in aws_instance.compute : n.root_block_device[0].encrypted],
     ))
