@@ -70,11 +70,12 @@ locals {
   # The workload package ships with the cluster so every run uses the
   # reviewed code in this repo, not something typed into a prompt. Plain
   # text, not per-file gzip: user data is gzipped as a whole, and that one
-  # pass compresses across files (EC2 caps user data at 16 KiB).
+  # pass compresses across files (EC2 caps user data at 16 KiB). Tests and
+  # the analysis of harvested run records run off the cluster.
   workload_files = {
     for f in fileset("${path.module}/../workloads", "**/*.{py,sh,sbatch,txt,def}") :
     f => file("${path.module}/../workloads/${f}")
-    if !startswith(f, "tests/")
+    if !startswith(f, "tests/") && !startswith(f, "analysis/")
   }
 }
 
