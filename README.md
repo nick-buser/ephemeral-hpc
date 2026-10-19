@@ -53,7 +53,7 @@ flowchart LR
 | Distributed workload | Data-parallel ESM-2 embedding, balanced by residue count across Slurm tasks; then a DDP classifier whose rendezvous comes from Slurm's environment (gloo on CPU, NCCL on GPU). | [`workloads/protein/`](workloads/protein) |
 | Container runtime | Jobs run in an Apptainer image holding Python, the pinned packages and the model weights, with the base image pinned by digest. The head node builds it at boot from the definition in this repo. | [`workloads/container/esm.def`](workloads/container/esm.def), [ADR 0007](docs/adr/0007-apptainer.md) |
 | Agent-driven science | Claude Science reads the host notes and the pipeline code, writes the job scripts, and submits each one through an approval card a human clicks. | [`docs/claude-science.md`](docs/claude-science.md) |
-| Agent isolation | The agent logs in as `agent`: no sudo, no subordinate UIDs, and egress rules (nftables, matched on UID) that allow the cluster network and nothing else, so it cannot reach the instance's AWS credentials. Its only internet access is a proxy that allows UniProt and logs every request. A script proves each property on a live cluster. | [ADR 0006](docs/adr/0006-agent-sandbox.md), [notes](docs/notes/agent-isolation.md), [`sandbox-check.sh`](scripts/sandbox-check.sh) |
+| Agent isolation | The agent logs in as `agent`: no sudo, no subordinate UIDs, and egress rules (nftables, matched on UID) that allow the cluster network and nothing else, so it cannot reach the instance's AWS credentials. Its only internet access is a proxy that allows HTTPS to UniProt and logs every request. A script proves each property on a live cluster. | [ADR 0006](docs/adr/0006-agent-sandbox.md), [notes](docs/notes/agent-isolation.md), [`sandbox-check.sh`](scripts/sandbox-check.sh) |
 | Credentials and secrets | Nothing long-lived exists. Terraform runs on 12-hour `aws login` sessions. The munge key is generated on the head node at boot and reaches compute nodes through an SSM SecureString under per-role IAM. It never touches Terraform state, user data or git. | [ADR 0002](docs/adr/0002-no-long-lived-credentials.md), [ADR 0004](docs/adr/0004-cluster-secrets.md) |
 | Network | Nothing on the internet can open a connection to a node except SSH to the head node from the operator's /32. IMDSv2 is required, root volumes are encrypted, the default security group is emptied and VPC flow logs are on. | [`infra/network.tf`](infra/network.tf), [ADR 0003](docs/adr/0003-network.md) |
 | Cost controls | Every node powers off after a TTL, and powering off terminates it. EventBridge Scheduler terminates every node from outside 10 minutes later, in case the in-OS shutdown was cancelled. CloudWatch terminates nodes idle for two hours. Budget alerts at 50/80/100% of $20. No NAT gateway; free-tier instance types. | [`infra/ttl.tf`](infra/ttl.tf), [`infra/monitoring.tf`](infra/monitoring.tf) |
@@ -140,7 +140,7 @@ disposable cluster:
 An independent review before publication found a real hole: the agent
 could map itself to other host UIDs through Apptainer's `--fakeroot` and
 leave the UID-matched egress rules. It is closed in three layers and
-written up, with nineteen other findings, in the
+written up, with twenty other findings, in the
 [isolation notes](docs/notes/agent-isolation.md).
 
 ## How it was built

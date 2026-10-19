@@ -25,8 +25,8 @@ but an approval is a person skimming a script, not a boundary.
 | Network | Dedicated VPC, no peering; inbound SSH only from the operator's /32 | Reaching the homelab, laptop or other AWS resources | flow logs |
 | Account | Instance roles limited to one SSM path; EventBridge TTL outside the instances | Using the account; keeping nodes alive past the TTL | `out-of-instance TTL: 4 EventBridge schedules` |
 | Identity | `agent` user, own key, no sudo, no subordinate UIDs; `newuidmap` not setuid; operator keeps `ubuntu` | Root; becoming any other host UID; editing code, image, firewall or Slurm config; reading the munge key | `no sudo`, `no subordinate UID/GID range`, `newuidmap/newgidmap are not setuid`, `cannot read the cluster's munge key` |
-| Egress | nftables, matched on the packet owner's UID (the agent's, and every subordinate UID): loopback and VPC only | AWS credentials (IMDS); direct internet | `firewall: …`, `egress rules also cover subordinate UIDs` |
-| Proxy | Squid allowlist, UniProt only, every request logged | Any site not on the list | `proxy: refuses …`, `proxy: allows …` |
+| Egress | nftables, matched on the packet owner's UID (the agent's, and every subordinate UID): loopback and VPC only. The IPv6 metadata endpoint is disabled | AWS credentials (IMDS, over IPv4 or IPv6); direct internet | `firewall: …`, `egress rules also cover subordinate UIDs` |
+| Proxy | Squid allowlist, UniProt only, CONNECT to port 443 only, every request logged | Any site not on the list; plain HTTP | `proxy: refuses …`, `proxy: allows …` |
 | Container | Apptainer `--contain --ipc --pid`, read-only image | Seeing the host filesystem and processes; changing the runtime | the 21 `(container)` checks |
 | Resources | Slurm cgroups | One job starving a node | `job sees its 2 allocated CPUs` |
 
@@ -144,6 +144,17 @@ Each entry: what we saw, why, the fix, and the general lesson.
 20. **`set -e` ignores negated commands.** `! grep -q pattern file` cannot
     fail a `set -e` script, so a guard written that way guards nothing.
     Caught in review of my own fix before it shipped.
+21. **A config's comment is a claim, not a test.** (2026-10-19.) The squid
+    config said "HTTPS only via CONNECT to port 443", but `Safe_ports`
+    still listed 80 and nothing refused non-CONNECT requests, so the agent
+    could `GET http://rest.uniprot.org/...` through the proxy; UniProt
+    answers plain HTTP with a 200. No check covered it because every check
+    used `https://`. *Fix:* `http_access deny !CONNECT`, port 80 dropped,
+    and two checks: plain HTTP refused, and a CONNECT tunnel to port 80
+    refused. Port 80 is open on that host, so only the proxy rule can make
+    the second one pass. *Lesson:* for each sentence in a comment that
+    describes a security property, there should be a check that fails
+    when the sentence stops being true.
 
 ## Our host controls versus Apptainer
 
