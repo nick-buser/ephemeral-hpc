@@ -115,7 +115,13 @@ could not run because the operator's AWS session had expired. The same node
 and data embedded at 1,795.6 residues/s inside the container and 1,773.2 on
 the host.
 
-Billed cost will be added once AWS billing data catches up.
+**Cost.** Everything above, every cluster built on 2026-10-15 and 16 (9.8
+head-node hours in all), came to $3.25 of AWS usage at on-demand prices.
+That breaks down as $2.71 for 28.4 m7i-flex.large hours, $0.20 for 9.8
+t3.small hours, $0.19 for public IPv4 addresses, $0.12 for EBS and $0.02
+for everything else. The account is on AWS's Free plan, so credits covered
+all of it and **$0.00 was billed** (Cost Explorer grouped by record type,
+read 2026-10-19).
 
 ## Where the isolation stops
 
