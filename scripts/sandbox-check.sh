@@ -17,6 +17,17 @@ admin_alias="${EHPC_ADMIN_ALIAS:-ehpc-admin}"
 profile="${AWS_PROFILE:-ephemeral-hpc}"
 region="${AWS_REGION:-us-east-2}"
 ssh_opts=(-o BatchMode=yes -o ConnectTimeout=15)
+# Read a Terraform output where the `aws login` session lives (as ssh-config.sh does).
+tf_output() {
+  local aws_env="AWS_PROFILE=$profile AWS_REGION=$region"
+  if [[ -n "${OPERATOR_HOST:-}" ]]; then
+    # shellcheck disable=SC2029 # these are meant to expand here, client side
+    ssh -n "${ssh_opts[@]}" "$OPERATOR_HOST" "cd ${OPERATOR_DIR:-ephemeral-hpc} && env $aws_env scripts/tf-run.sh infra output -raw $1"
+  else
+    # shellcheck disable=SC2086 # aws_env is two NAME=value words
+    env $aws_env "$repo_root/scripts/tf-run.sh" infra output -raw "$1"
+  fi
+}
 # Run the AWS CLI where the `aws login` session lives.
 aws_cli() {
   if [[ -n "${OPERATOR_HOST:-}" ]]; then
@@ -28,10 +39,11 @@ aws_cli() {
 }
 
 # The checks that run on the cluster as the agent. Quoted heredoc: nothing
-# here expands on the operator's machine.
+# here expands on the operator's machine; run_checks prepends nodes=<count>.
 agent_checks() {
   cat <<'AGENT'
 set -u
+: "${nodes:?}"
 source /etc/profile.d/ehpc.sh
 fails=0
 result() { if [ "$1" = 0 ]; then echo "PASS  $2"; else echo "FAIL  $2"; fails=$((fails + 1)); fi; }
@@ -45,12 +57,19 @@ denied "no subordinate UID/GID range for the agent" grep -qs '^agent:' /etc/subu
 denied "newuidmap/newgidmap are not setuid" test -u /usr/bin/newuidmap -o -u /usr/bin/newgidmap
 denied "firewall: no instance metadata service, so no AWS credentials" \
   curl -fsS -m 5 --noproxy '*' -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token
+denied "firewall: no instance metadata service over IPv6 (fd00:ec2::254)" \
+  curl -fsS -m 5 -g --noproxy '*' -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' 'http://[fd00:ec2::254]/latest/api/token'
 denied "proxy: will not forward to the metadata service either" \
   curl -fsS -m 5 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token
 denied "firewall: no direct internet" curl -fsS -m 5 --noproxy '*' -o /dev/null https://example.com
 denied "proxy: refuses a domain not on the allowlist" curl -fsS -m 10 -o /dev/null https://example.com
 denied "proxy: refuses a bare IP (no reverse-DNS match)" curl -fsS -m 10 -o /dev/null https://1.1.1.1
 denied "proxy: refuses PyPI (shared CDN, not on the allowlist)" curl -fsS -m 10 -o /dev/null https://pypi.org/simple/
+denied "proxy: refuses plain HTTP, even to an allowlisted domain" \
+  curl -fsS -m 10 -o /dev/null http://rest.uniprot.org/uniprotkb/P69905.fasta
+# Port 80 is open on that host, so only the proxy rule can make this fail.
+denied "proxy: refuses a CONNECT tunnel to port 80" \
+  curl -fsS -m 10 -o /dev/null --proxytunnel http://rest.uniprot.org/uniprotkb/P69905.fasta
 allowed "proxy: allows an allowlisted domain (UniProt)" \
   curl -fsS -m 30 -o /dev/null https://rest.uniprot.org/uniprotkb/P69905.fasta
 denied "cannot cancel the scheduled TTL shutdown" shutdown -c
@@ -68,6 +87,8 @@ h=$(hostname)
 r() { if [ "$1" = 0 ]; then echo "PASS  $h: $2"; else echo "FAIL  $h: $2"; fi; }
 curl -fsS -m 5 --noproxy '*' -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token >/dev/null 2>&1
 [ $? != 0 ]; r $? "firewall: no instance metadata service"
+curl -fsS -m 5 -g --noproxy '*' -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' 'http://[fd00:ec2::254]/latest/api/token' >/dev/null 2>&1
+[ $? != 0 ]; r $? "firewall: no instance metadata service over IPv6"
 curl -fsS -m 5 --noproxy '*' -o /dev/null https://example.com >/dev/null 2>&1
 [ $? != 0 ]; r $? "firewall: no direct internet"
 curl -fsS -m 30 -o /dev/null https://rest.uniprot.org/uniprotkb/P69905.fasta >/dev/null 2>&1
@@ -79,10 +100,10 @@ r $? "no subordinate IDs, newuidmap not setuid"
 [ "$(nproc)" = "$SLURM_CPUS_PER_TASK" ]; r $? "job sees its $SLURM_CPUS_PER_TASK allocated CPUs (nproc $(nproc))"
 NODE
 # </dev/null: srun forwards stdin, and stdin here is the rest of this script.
-out=$(srun --nodes=3 --ntasks-per-node=1 --cpus-per-task=2 bash "$node_check" 2>&1 </dev/null)
+out=$(srun --nodes="$nodes" --ntasks-per-node=1 --cpus-per-task=2 bash "$node_check" 2>&1 </dev/null)
 echo "$out" | sort
 fails=$((fails + $(grep -c '^FAIL' <<<"$out")))
-[ "$(grep -c '^PASS' <<<"$out")" = 18 ]; result $? "all three compute nodes answered"
+[ "$(grep -c '^PASS' <<<"$out")" = $((7 * nodes)) ]; result $? "all $nodes compute nodes answered"
 
 # And inside the Apptainer image every job runs in ($EHPC_PY).
 ctr_check="$SCRATCH/.sandbox-container-check.py"
@@ -100,6 +121,9 @@ direct = u.build_opener(u.ProxyHandler({}))
 imds = u.Request("http://169.254.169.254/latest/api/token", method="PUT",
                  headers={"X-aws-ec2-metadata-token-ttl-seconds": "60"})
 r(denied(lambda: direct.open(imds, timeout=5)), "no instance metadata service")
+imds6 = u.Request("http://[fd00:ec2::254]/latest/api/token", method="PUT",
+                  headers={"X-aws-ec2-metadata-token-ttl-seconds": "60"})
+r(denied(lambda: direct.open(imds6, timeout=5)), "no instance metadata service over IPv6")
 r(denied(lambda: direct.open("https://example.com", timeout=5)), "no direct internet")
 r(not denied(lambda: u.urlopen("https://rest.uniprot.org/uniprotkb/P69905.fasta", timeout=30)), "allowlisted domain through the proxy")
 r(os.listdir(os.path.expanduser("~")) == [], "private, empty home")
@@ -107,10 +131,10 @@ r(not os.path.exists("/etc/munge"), "host /etc not visible")
 r(open("/proc/1/cmdline").read().startswith("appinit"), "own PID namespace")
 r(denied(lambda: open("/opt/ehpc/requirements.txt", "a")), "image is read-only")
 PY
-out=$(srun --nodes=3 --ntasks-per-node=1 --cpus-per-task=2 "$EHPC_PY" "$ctr_check" 2>&1 </dev/null)
+out=$(srun --nodes="$nodes" --ntasks-per-node=1 --cpus-per-task=2 "$EHPC_PY" "$ctr_check" 2>&1 </dev/null)
 echo "$out" | sort
 fails=$((fails + $(grep -c '^FAIL' <<<"$out")))
-[ "$(grep -c '^PASS' <<<"$out")" = 21 ]; result $? "all three compute nodes answered from inside the container"
+[ "$(grep -c '^PASS' <<<"$out")" = $((8 * nodes)) ]; result $? "all $nodes compute nodes answered from inside the container"
 rm -f "$node_check" "$ctr_check" "$SCRATCH/.sandbox-check"
 echo "checks-complete"
 exit "$fails"
@@ -120,9 +144,16 @@ AGENT
 run_checks() {
   echo "# sandbox check, $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
-  echo "## As the agent, on the head node and each compute node"
+  # How many compute nodes Terraform built, so a node that never joined
+  # Slurm fails the check instead of shrinking it.
+  local nodes
+  if ! nodes=$(tf_output compute_count 2>/dev/null) || [[ ! "$nodes" =~ ^[1-9][0-9]*$ ]]; then
+    echo "FAIL  could not read compute_count from Terraform output"
+    return 1
+  fi
+  echo "## As the agent, on the head node and each of the $nodes compute nodes"
   local agent_fails=0 agent_out
-  agent_out=$(agent_checks | ssh "${ssh_opts[@]}" "$agent_alias" 'bash -s' 2>&1) || agent_fails=$?
+  agent_out=$({ echo "nodes=$nodes"; agent_checks; } | ssh "${ssh_opts[@]}" "$agent_alias" 'bash -s' 2>&1) || agent_fails=$?
   # A check that stops early must not read as a pass.
   grep -v '^checks-complete$' <<<"$agent_out"
   if ! grep -q '^checks-complete$' <<<"$agent_out"; then

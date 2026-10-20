@@ -1,0 +1,7 @@
+submitted 2026-10-19T22:46:48Z by agent
+4d62ed8b938101db578d8fcddde8e092eba742b9cc7f016f3d1401bf6b2c7efd  /shared/containers/esm.sif
+3867f7124dd76f811428c59cf3bf10b020778f61fc82dde1edd32373e11410d0  /shared/data/uniprot_human.tsv
+NODELIST cpus=CPUS sockets=SOCKETS cores=CORES threads=THREADS mem=MEMORY
+compute-1 cpus=2 sockets=1 cores=1 threads=2 mem=6963
+compute-2 cpus=2 sockets=1 cores=1 threads=2 mem=6963
+compute-3 cpus=2 sockets=1 cores=1 threads=2 mem=6963

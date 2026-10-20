@@ -48,3 +48,8 @@ output "dashboard_url" {
 output "self_terminates_after_hours" {
   value = var.ttl_hours
 }
+
+output "compute_count" {
+  description = "Compute nodes built; scripts/sandbox-check.sh expects every one to answer."
+  value       = length(local.compute_nodes)
+}

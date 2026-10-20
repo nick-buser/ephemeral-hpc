@@ -115,3 +115,51 @@ reasoning that does not fit in a commit message.
   reachable by hash; the private original is archived. Secret scanning,
   push protection, Dependabot alerts and a no-force-push rule on `main`
   are on. CI's full-history gitleaks scan: 29 commits, no leaks.
+
+## 2026-10-19
+
+- **Scope.** A pass over what the README claimed against what the record
+  showed. Five gaps: the Claude Science run predates the isolation; the
+  scaling table was one run per node count at one vCPU per node; squid
+  allowed port 80 although its comment said HTTPS-only; the billed cost
+  was missing; and `sandbox-check.sh` hardcoded three nodes and never
+  probed the IPv6 metadata endpoint.
+- **17:21 The proxy's comment was a claim, not a test.** `Safe_ports`
+  still listed 80, so a plain `GET http://` to an allowlisted host would
+  have gone through. Squid now accepts only CONNECT, and only to 443. Two
+  new live checks cover it. One is a CONNECT to port 80 on UniProt, which
+  does listen there, so only the proxy rule can make it fail. Finding 21 in
+  the [isolation notes](notes/agent-isolation.md).
+- **17:21 IPv6 metadata endpoint.** `fd00:ec2::254` was off only by
+  default. It is now explicit, with a guardrail test that fails when it is
+  flipped. `sandbox-check.sh` probes it on the head, on every node and
+  inside the container, and reads the node count from a Terraform output.
+- **17:26 User data hit its limit again.** The benchmark scripts pushed
+  head user data past 16 KiB, and the guardrail test caught it before EC2
+  did. The report moved to `workloads/analysis/`, which runs off the
+  cluster and is not shipped. `scaling.sh` reuses `embed.sbatch` instead of
+  adding a second batch script. A few hundred bytes of headroom are left,
+  so the next workload addition means building the image off the head node
+  (roadmap).
+- **18:31 Cost Explorer shows $0 by usage type.** Grouped by usage type,
+  Free plan credits net out against usage and every row reads $0.00.
+  Grouped by record type, the first runs' $3.25 of usage and the $3.25 of
+  credits show up separately.
+- **18:46 Isolated cluster: 69 of 69 checks pass.**
+- **18:46–20:16 The benchmark, repeated.** Nine exclusive jobs submitted
+  by the agent, run inside the container, three at each node count:
+  1,889 / 3,514 / 5,248 residues/s, every repeat within 0.4% of its mean,
+  and 93% efficiency at 2 and 3 nodes. Every 1-node run landed on
+  compute-1, which was 3–4% faster than the other two nodes in every
+  3-node run, so the efficiency figure is measured against the best node.
+- **20:17 Harvest failed twice.** First, tar got EAGAIN on the last job's
+  files. Compute-3 still held an NFS delegation on what it had just
+  written, and GNU tar opens files non-blocking, so the open failed while
+  the lease was recalled. A blocking read now goes first. Second, every
+  compute node failed host-key checks: their keys sat in a known_hosts file
+  that nothing cleared, and every build reuses the same private IPs with
+  new keys. The keys now go in the file that `ssh-config.sh` resets for
+  each cluster.
+- **20:20 Torn down.** About 1.8 hours of cluster, roughly $0.60 at the
+  billed rates. The Claude Science run was not repeated on the isolated
+  cluster. The README now says so, and the roadmap keeps it.

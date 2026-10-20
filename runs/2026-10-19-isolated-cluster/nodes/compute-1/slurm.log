@@ -1,0 +1,150 @@
+[2026-10-19T22:33:06.052] CPU frequency setting not configured for this node
+[2026-10-19T22:33:06.052] slurmd version 23.11.4 started
+[2026-10-19T22:33:06.053] error:  mpi/pmix_v5: init: (null) [0]: mpi_pmix.c:193: pmi/pmix: can not load PMIx library
+[2026-10-19T22:33:06.053] error: Couldn't load specified plugin name for mpi/pmix_v5: Plugin init() callback failed
+[2026-10-19T22:33:06.053] error: MPI: Cannot create context for mpi/pmix_v5
+[2026-10-19T22:33:06.053] error:  mpi/pmix_v5: init: (null) [0]: mpi_pmix.c:193: pmi/pmix: can not load PMIx library
+[2026-10-19T22:33:06.053] error: Couldn't load specified plugin name for mpi/pmix: Plugin init() callback failed
+[2026-10-19T22:33:06.053] error: MPI: Cannot create context for mpi/pmix
+[2026-10-19T22:33:06.053] slurmd started on Mon, 19 Oct 2026 22:33:06 +0000
+[2026-10-19T22:33:06.054] CPUs=2 Boards=1 Sockets=1 Cores=1 Threads=2 Memory=7776 TmpDisk=28690 Uptime=109 CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null)
+[2026-10-19T22:46:32.545] launch task StepId=1.0 request from UID:2001 GID:2001 HOST:10.42.1.10 PORT:58556
+[2026-10-19T22:46:32.545] task/affinity: lllp_distribution: JobId=1 implicit auto binding: threads, dist 8192
+[2026-10-19T22:46:32.545] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T22:46:32.545] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [1]: mask_cpu, 0x3
+[2026-10-19T22:46:32.555] [1.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:32.556] [1.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:32.975] [1.0] done with step
+[2026-10-19T22:46:33.007] launch task StepId=2.0 request from UID:2001 GID:2001 HOST:10.42.1.10 PORT:58564
+[2026-10-19T22:46:33.007] task/affinity: lllp_distribution: JobId=2 implicit auto binding: threads, dist 8192
+[2026-10-19T22:46:33.007] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T22:46:33.007] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [2]: mask_cpu, 0x3
+[2026-10-19T22:46:33.017] [2.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:33.018] [2.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:33.816] [2.0] done with step
+[2026-10-19T22:46:49.003] task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 3
+[2026-10-19T22:46:49.003] task/affinity: batch_bind: job 3 CPU input mask for node: 0x3
+[2026-10-19T22:46:49.003] task/affinity: batch_bind: job 3 CPU final HW mask for node: 0x3
+[2026-10-19T22:46:50.141] Launching batch job 3 for UID 2001
+[2026-10-19T22:46:50.151] [3.batch] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:50.152] [3.batch] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:50.171] launch task StepId=3.0 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:41844
+[2026-10-19T22:46:50.171] task/affinity: lllp_distribution: JobId=3 implicit auto binding: threads, dist 1
+[2026-10-19T22:46:50.171] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T22:46:50.172] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [3]: mask_cpu, 0x3
+[2026-10-19T22:46:50.184] [3.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:50.184] [3.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:50.511] [3.0] done with step
+[2026-10-19T22:46:50.524] launch task StepId=3.1 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:46676
+[2026-10-19T22:46:50.524] task/affinity: lllp_distribution: JobId=3 implicit auto binding: threads, dist 1
+[2026-10-19T22:46:50.524] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T22:46:50.524] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [3]: mask_cpu, 0x3
+[2026-10-19T22:46:50.533] [3.1] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T22:46:50.533] [3.1] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:08:42.123] [3.1] done with step
+[2026-10-19T23:08:42.138] [3.batch] done with step
+[2026-10-19T23:08:43.002] task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 5
+[2026-10-19T23:08:43.002] task/affinity: batch_bind: job 5 CPU input mask for node: 0x3
+[2026-10-19T23:08:43.002] task/affinity: batch_bind: job 5 CPU final HW mask for node: 0x3
+[2026-10-19T23:08:44.129] Launching batch job 5 for UID 2001
+[2026-10-19T23:08:44.138] [5.batch] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:08:44.138] [5.batch] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:08:44.160] launch task StepId=5.0 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:52070
+[2026-10-19T23:08:44.160] task/affinity: lllp_distribution: JobId=5 implicit auto binding: threads, dist 1
+[2026-10-19T23:08:44.160] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T23:08:44.160] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [5]: mask_cpu, 0x3
+[2026-10-19T23:08:44.171] [5.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:08:44.171] [5.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:08:44.494] [5.0] done with step
+[2026-10-19T23:08:44.506] launch task StepId=5.1 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:52078
+[2026-10-19T23:08:44.506] task/affinity: lllp_distribution: JobId=5 implicit auto binding: threads, dist 1
+[2026-10-19T23:08:44.506] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T23:08:44.506] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [5]: mask_cpu, 0x3
+[2026-10-19T23:08:44.516] [5.1] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:08:44.516] [5.1] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:16:21.577] [5.1] done with step
+[2026-10-19T23:16:38.191] [5.batch] done with step
+[2026-10-19T23:16:39.003] task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 6
+[2026-10-19T23:16:39.003] task/affinity: batch_bind: job 6 CPU input mask for node: 0x3
+[2026-10-19T23:16:39.003] task/affinity: batch_bind: job 6 CPU final HW mask for node: 0x3
+[2026-10-19T23:16:40.137] Launching batch job 6 for UID 2001
+[2026-10-19T23:16:40.151] [6.batch] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:16:40.151] [6.batch] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:16:40.171] launch task StepId=6.0 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:43662
+[2026-10-19T23:16:40.171] task/affinity: lllp_distribution: JobId=6 implicit auto binding: threads, dist 1
+[2026-10-19T23:16:40.171] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T23:16:40.171] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [6]: mask_cpu, 0x3
+[2026-10-19T23:16:40.181] [6.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:16:40.181] [6.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:16:40.510] [6.0] done with step
+[2026-10-19T23:16:40.522] launch task StepId=6.1 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:33258
+[2026-10-19T23:16:40.522] task/affinity: lllp_distribution: JobId=6 implicit auto binding: threads, dist 1
+[2026-10-19T23:16:40.522] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T23:16:40.522] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [6]: mask_cpu, 0x3
+[2026-10-19T23:16:40.534] [6.1] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:16:40.534] [6.1] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:38:34.301] [6.1] done with step
+[2026-10-19T23:38:34.314] [6.batch] done with step
+[2026-10-19T23:38:35.002] task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 8
+[2026-10-19T23:38:35.002] task/affinity: batch_bind: job 8 CPU input mask for node: 0x3
+[2026-10-19T23:38:35.002] task/affinity: batch_bind: job 8 CPU final HW mask for node: 0x3
+[2026-10-19T23:38:36.134] Launching batch job 8 for UID 2001
+[2026-10-19T23:38:36.144] [8.batch] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:38:36.144] [8.batch] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:38:36.166] launch task StepId=8.0 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:51298
+[2026-10-19T23:38:36.166] task/affinity: lllp_distribution: JobId=8 implicit auto binding: threads, dist 1
+[2026-10-19T23:38:36.166] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T23:38:36.166] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [8]: mask_cpu, 0x3
+[2026-10-19T23:38:36.175] [8.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:38:36.175] [8.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:38:36.502] [8.0] done with step
+[2026-10-19T23:38:36.515] launch task StepId=8.1 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:51302
+[2026-10-19T23:38:36.515] task/affinity: lllp_distribution: JobId=8 implicit auto binding: threads, dist 1
+[2026-10-19T23:38:36.515] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T23:38:36.515] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [8]: mask_cpu, 0x3
+[2026-10-19T23:38:36.524] [8.1] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:38:36.524] [8.1] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:46:14.207] [8.1] done with step
+[2026-10-19T23:46:31.777] [8.batch] done with step
+[2026-10-19T23:46:32.003] task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 9
+[2026-10-19T23:46:32.003] task/affinity: batch_bind: job 9 CPU input mask for node: 0x3
+[2026-10-19T23:46:32.003] task/affinity: batch_bind: job 9 CPU final HW mask for node: 0x3
+[2026-10-19T23:46:33.142] Launching batch job 9 for UID 2001
+[2026-10-19T23:46:33.152] [9.batch] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:46:33.152] [9.batch] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:46:33.174] launch task StepId=9.0 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:44002
+[2026-10-19T23:46:33.174] task/affinity: lllp_distribution: JobId=9 implicit auto binding: threads, dist 1
+[2026-10-19T23:46:33.174] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T23:46:33.174] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [9]: mask_cpu, 0x3
+[2026-10-19T23:46:33.183] [9.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:46:33.183] [9.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:46:33.506] [9.0] done with step
+[2026-10-19T23:46:33.518] launch task StepId=9.1 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:44006
+[2026-10-19T23:46:33.518] task/affinity: lllp_distribution: JobId=9 implicit auto binding: threads, dist 1
+[2026-10-19T23:46:33.518] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-19T23:46:33.518] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [9]: mask_cpu, 0x3
+[2026-10-19T23:46:33.527] [9.1] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-19T23:46:33.527] [9.1] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-20T00:08:29.832] [9.1] done with step
+[2026-10-20T00:08:29.846] [9.batch] done with step
+[2026-10-20T00:08:30.004] task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 11
+[2026-10-20T00:08:30.004] task/affinity: batch_bind: job 11 CPU input mask for node: 0x3
+[2026-10-20T00:08:30.004] task/affinity: batch_bind: job 11 CPU final HW mask for node: 0x3
+[2026-10-20T00:08:31.136] Launching batch job 11 for UID 2001
+[2026-10-20T00:08:31.147] [11.batch] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-20T00:08:31.147] [11.batch] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-20T00:08:31.165] launch task StepId=11.0 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:59070
+[2026-10-20T00:08:31.165] task/affinity: lllp_distribution: JobId=11 implicit auto binding: threads, dist 1
+[2026-10-20T00:08:31.165] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-20T00:08:31.165] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [11]: mask_cpu, 0x3
+[2026-10-20T00:08:31.174] [11.0] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-20T00:08:31.174] [11.0] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-20T00:08:31.500] [11.0] done with step
+[2026-10-20T00:08:31.512] launch task StepId=11.1 request from UID:2001 GID:2001 HOST:10.42.1.11 PORT:59080
+[2026-10-20T00:08:31.512] task/affinity: lllp_distribution: JobId=11 implicit auto binding: threads, dist 1
+[2026-10-20T00:08:31.512] task/affinity: _task_layout_lllp_cyclic: _task_layout_lllp_cyclic 
+[2026-10-20T00:08:31.512] task/affinity: _lllp_generate_cpu_bind: _lllp_generate_cpu_bind jobid [11]: mask_cpu, 0x3
+[2026-10-20T00:08:31.521] [11.1] task/cgroup: _memcg_initialize: job: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-20T00:08:31.521] [11.1] task/cgroup: _memcg_initialize: step: alloc=6962MB mem.limit=6962MB memsw.limit=unlimited
+[2026-10-20T00:16:11.757] [11.1] done with step
+[2026-10-20T00:16:27.708] [11.batch] done with step

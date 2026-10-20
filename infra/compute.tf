@@ -70,11 +70,12 @@ locals {
   # The workload package ships with the cluster so every run uses the
   # reviewed code in this repo, not something typed into a prompt. Plain
   # text, not per-file gzip: user data is gzipped as a whole, and that one
-  # pass compresses across files (EC2 caps user data at 16 KiB).
+  # pass compresses across files (EC2 caps user data at 16 KiB). Tests and
+  # the analysis of harvested run records run off the cluster.
   workload_files = {
     for f in fileset("${path.module}/../workloads", "**/*.{py,sh,sbatch,txt,def}") :
     f => file("${path.module}/../workloads/${f}")
-    if !startswith(f, "tests/")
+    if !startswith(f, "tests/") && !startswith(f, "analysis/")
   }
 }
 
@@ -101,6 +102,7 @@ resource "aws_instance" "head" {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
     http_put_response_hop_limit = 1
+    http_protocol_ipv6          = "disabled" # fd00:ec2::254 stays off; sandbox-check.sh probes it
   }
 
   root_block_device {
@@ -163,6 +165,7 @@ resource "aws_instance" "compute" {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
     http_put_response_hop_limit = 1
+    http_protocol_ipv6          = "disabled" # fd00:ec2::254 stays off; sandbox-check.sh probes it
   }
 
   root_block_device {

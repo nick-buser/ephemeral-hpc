@@ -31,14 +31,17 @@ mkdir -p "$out"/{slurm,jobs,nodes,aws}
 ssh_opts=(-n -o BatchMode=yes -o ConnectTimeout=15) # -n: never read the caller's stdin
 # shellcheck disable=SC2029 # remote commands are built here on purpose
 on_head() { ssh "${ssh_opts[@]}" "$alias_name" "$@"; }
-# Compute nodes have no public SSH; reach them through the head.
+# Compute nodes have no public SSH; reach them through the head. Their keys
+# go in the head's known_hosts file, which ssh-config.sh clears with each new
+# cluster: every build reuses the same private IPs with new host keys.
+known_hosts=$(ssh -G "$alias_name" 2>/dev/null | awk '$1 == "userknownhostsfile" {print $2; exit}')
 on_node() {
   local addr="$1"
   shift
   ssh "${ssh_opts[@]}" -o ProxyJump="$alias_name" -o IdentitiesOnly=yes \
     -i "${EHPC_SSH_KEY:-$HOME/.ssh/ehpc_ed25519}" \
     -o StrictHostKeyChecking=accept-new \
-    -o UserKnownHostsFile="$HOME/.ssh/known_hosts.$alias_name" \
+    -o UserKnownHostsFile="$known_hosts" \
     "ubuntu@$addr" "$@"
 }
 # Run the AWS CLI where the `aws login` session lives.
@@ -65,7 +68,10 @@ on_head 'scontrol show config; echo; scontrol show nodes; echo; sinfo -N -l' \
 #    files of known text types under 1 MiB (`-size -1M` would round up and
 #    match only empty files): no symlinks, no binaries, no
 #    datasets, nothing planted under another name.
-on_head 'cd /shared/scratch && find . -type f -size -1024k \( -name "*.log" -o -name "*.out" -o -name "*.err" -o -name "*.json" -o -name "*.csv" -o -name "*.txt" -o -name "*.sh" -o -name "*.py" -o -name "*.sbatch" -o -name "*.def" \) -print0 | tar --null -T - -czf -' |
+#    A compute node can still hold an NFS delegation on a file its job just
+#    wrote. tar opens files non-blocking and gets EAGAIN while that lease is
+#    recalled, so a blocking read goes first and waits the recall out.
+on_head 'cd /shared/scratch && find . -type f -size -1024k \( -name "*.log" -o -name "*.out" -o -name "*.err" -o -name "*.json" -o -name "*.csv" -o -name "*.txt" -o -name "*.sh" -o -name "*.py" -o -name "*.sbatch" -o -name "*.def" \) -print0 >/tmp/collect.list && xargs -0 -r cat </tmp/collect.list >/dev/null && tar --null -T /tmp/collect.list -czf -' |
   tar -C "$out/jobs" -xzf -
 
 # 3. Per-node logs and boot timing.

@@ -1,0 +1,104 @@
++ region=us-east-2
++ param=/ehpc/munge-key/i-0813b1a577388e557
++ nft list table inet ehpc_agent
++ nft list table inet ehpc_agent
++ install -d /shared
++ echo 'head:/shared /shared nfs4 defaults,_netdev,nofail,noatime 0 0'
++ systemctl daemon-reload
+++ seq 60
++ for _ in $(seq 60)
++ mount /shared
+mount.nfs4: mounting head:/shared failed, reason given by server: No such file or directory
++ sleep 10
++ for _ in $(seq 60)
++ mount /shared
++ break
++ mountpoint -q /shared
++ curl -fsSLo /tmp/apptainer.deb https://github.com/apptainer/apptainer/releases/download/v1.5.4/apptainer_1.5.4_amd64.deb
++ echo '281cf9bd68f16b6f7c34a3a94d77668bc327b9c09db0412ce7890162734a97f7  /tmp/apptainer.deb'
++ sha256sum -c -
+/tmp/apptainer.deb: OK
++ DEBIAN_FRONTEND=noninteractive
++ apt-get -o DPkg::Lock::Timeout=600 install -y -q /tmp/apptainer.deb
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  fakeroot libfakeroot libsubid4 libtalloc2 uidmap
+The following NEW packages will be installed:
+  apptainer fakeroot libfakeroot libsubid4 libtalloc2 uidmap
+0 upgraded, 6 newly installed, 0 to remove and 2 not upgraded.
+Need to get 176 kB/33.0 MB of archives.
+After this operation, 147 MB of additional disk space will be used.
+Get:1 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libsubid4 amd64 1:4.13+dfsg1-4ubuntu3.2 [23.4 kB]
+Get:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libtalloc2 amd64 2.4.2-1build2 [27.3 kB]
+Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 uidmap amd64 1:4.13+dfsg1-4ubuntu3.2 [26.0 kB]
+Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libfakeroot amd64 1.33-1 [32.4 kB]
+Get:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fakeroot amd64 1.33-1 [67.2 kB]
+Get:6 /tmp/apptainer.deb apptainer amd64 1.5.4 [32.9 MB]
+Fetched 176 kB in 0s (1048 kB/s)
+Selecting previously unselected package libsubid4:amd64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 80329 files and directories currently installed.)
+Preparing to unpack .../0-libsubid4_1%3a4.13+dfsg1-4ubuntu3.2_amd64.deb ...
+Unpacking libsubid4:amd64 (1:4.13+dfsg1-4ubuntu3.2) ...
+Selecting previously unselected package libtalloc2:amd64.
+Preparing to unpack .../1-libtalloc2_2.4.2-1build2_amd64.deb ...
+Unpacking libtalloc2:amd64 (2.4.2-1build2) ...
+Selecting previously unselected package uidmap.
+Preparing to unpack .../2-uidmap_1%3a4.13+dfsg1-4ubuntu3.2_amd64.deb ...
+Unpacking uidmap (1:4.13+dfsg1-4ubuntu3.2) ...
+Selecting previously unselected package libfakeroot:amd64.
+Preparing to unpack .../3-libfakeroot_1.33-1_amd64.deb ...
+Unpacking libfakeroot:amd64 (1.33-1) ...
+Selecting previously unselected package fakeroot.
+Preparing to unpack .../4-fakeroot_1.33-1_amd64.deb ...
+Unpacking fakeroot (1.33-1) ...
+Selecting previously unselected package apptainer.
+Preparing to unpack .../5-apptainer.deb ...
+Unpacking apptainer (1.5.4) ...
+Setting up libfakeroot:amd64 (1.33-1) ...
+Setting up fakeroot (1.33-1) ...
+update-alternatives: using /usr/bin/fakeroot-sysv to provide /usr/bin/fakeroot (fakeroot) in auto mode
+Setting up libtalloc2:amd64 (2.4.2-1build2) ...
+Setting up libsubid4:amd64 (1:4.13+dfsg1-4ubuntu3.2) ...
+Setting up uidmap (1:4.13+dfsg1-4ubuntu3.2) ...
+Setting up apptainer (1.5.4) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+
+Running kernel seems to be up-to-date.
+
+No services need to be restarted.
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
++ rm -f /tmp/apptainer.deb
++ dpkg-statoverride --update --add root root 0755 /usr/bin/newuidmap
++ dpkg-statoverride --update --add root root 0755 /usr/bin/newgidmap
++ grep -qs '^agent:' /etc/subuid /etc/subgid
++ snap wait system seed.loaded
++ snap install aws-cli --classic
+aws-cli (v2/stable) 2.35.21 from Amazon Web Services (aws**) installed
++ set +x
++ chown munge:munge /etc/munge/munge.key
++ chmod 0400 /etc/munge/munge.key
++ systemctl restart munge
+Warning: The unit file, source configuration file or drop-ins of munge.service changed on disk. Run 'systemctl daemon-reload' to reload units.
++ install -d -o slurm -g slurm /var/log/slurm /var/spool/slurmd
++ systemctl enable slurmd
+Synchronizing state of slurmd.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable slurmd
+++ seq 60
++ for _ in $(seq 60)
++ systemctl restart slurmd
++ sleep 5
++ systemctl is-active --quiet slurmd
++ break
++ systemctl is-active --quiet slurmd
++ nft list table inet ehpc_agent
+++ date -Is
++ echo 'ehpc compute ready: 2026-10-19T22:33:12+00:00'
+ehpc compute ready: 2026-10-19T22:33:12+00:00

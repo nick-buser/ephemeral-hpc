@@ -1,0 +1,8 @@
+/shared/data/uniprot_human.tsv exists; not refetching
+{"rank": 0, "world_size": 2, "host": "compute-2", "device": "cpu", "threads": 2, "model": "esm2_t6_8M_UR50D", "sequences": 3000, "residues": 1238318, "seconds": 694.97, "residues_per_second": 1781.8}
+{"rank": 1, "world_size": 2, "host": "compute-3", "device": "cpu", "threads": 2, "model": "esm2_t6_8M_UR50D", "sequences": 3000, "residues": 1238317, "seconds": 702.48, "residues_per_second": 1762.8}
+total 7.6M
+-rw-rw-r-- 1 agent agent 3.8M Oct 19 23:58 shard-00.npz
+-rw-rw-r-- 1 agent agent 3.8M Oct 19 23:58 shard-01.npz
+-rw-rw-r-- 1 agent agent  221 Oct 19 23:58 timing-00.json
+-rw-rw-r-- 1 agent agent  221 Oct 19 23:58 timing-01.json
