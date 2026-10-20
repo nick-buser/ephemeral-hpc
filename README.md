@@ -149,7 +149,10 @@ That breaks down as $2.71 for 28.4 m7i-flex.large hours, $0.20 for 9.8
 t3.small hours, $0.19 for public IPv4 addresses, $0.12 for EBS and $0.02
 for everything else. The account is on AWS's Free plan, so credits covered
 all of it and **$0.00 was billed** (Cost Explorer grouped by record type,
-read 2026-10-19).
+read 2026-10-19). The 2026-10-19 cluster, which ran the 69 checks and the
+benchmark, was up for about 1.8 hours. At the same rates that is roughly
+$0.60. This is an estimate: billing had not caught up when this was
+written.
 
 ## Where the isolation stops
 
