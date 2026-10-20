@@ -82,6 +82,21 @@ squeue; sacct
 
 To run it through Claude Science instead, see [claude-science.md](claude-science.md).
 
+The scaling benchmark repeats the embedding stage three times at each of 1,
+2 and 3 nodes, as separate exclusive jobs (about 90 minutes on three
+`m7i-flex.large` nodes):
+
+```
+ssh ehpc
+/shared/opt/ehpc/workloads/protein/scaling.sh
+```
+
+After `collect-run.sh`, build the table off the cluster:
+
+```
+python3 -I workloads/analysis/scaling_report.py runs/<run-name>/jobs/agent/<scaling-dir> --sacct runs/<run-name>/slurm/sacct.psv
+```
+
 ## Keep the record
 
 Everything on the cluster, `/shared` and the accounting database included,

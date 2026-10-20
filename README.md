@@ -4,11 +4,13 @@
 
 A Slurm cluster on AWS that Terraform builds in minutes and that deletes
 itself on a timer. [Claude Science](https://claude.com/docs/claude-science/remote-compute-clusters),
-Anthropic's agent for scientific work, connects to it over SSH and runs a
+Anthropic's agent for scientific work, connected to it over SSH and ran a
 two-stage distributed workflow: ESM-2 protein embeddings sharded across the
 nodes, then a classifier trained with multi-node PyTorch
-DistributedDataParallel. The agent runs as an unprivileged user, inside an
-Apptainer image, behind an egress allowlist.
+DistributedDataParallel. Since then the cluster confines what an agent runs
+on it: an unprivileged user, an Apptainer image and an egress allowlist.
+The embedding benchmark has been repeated under those controls. The Claude
+Science run itself predates them.
 
 This is a personal project, built to learn and to show the work: how a
 cluster like this is put together, how an AI agent can be given real compute
@@ -62,26 +64,49 @@ flowchart LR
 
 ## Results
 
-The first full run (2026-10-15) was driven end to end by Claude Science on
-three `m7i-flex.large` compute nodes: ESM-2 8M (`esm2_t6_8M_UR50D`) over
-6,000 reviewed human proteins (2,476,635 residues). It ran before the
-isolation work below existed, as the image's default user, outside any
-container. The job scripts, logs, per-node timings, Slurm accounting and
-CloudWatch metrics are in [`runs/2026-10-15-claude-science-cpu/`](runs/2026-10-15-claude-science-cpu/).
+Every run embeds the same data with ESM-2 8M (`esm2_t6_8M_UR50D`): 6,000
+reviewed human proteins, 2,476,635 residues. The compute nodes are three
+`m7i-flex.large` instances, each with 1 core × 2 threads.
 
-**Embedding throughput.** One 3-node allocation, with steps on 1, 2 and 3
-nodes run one after another (53 minutes).
+**Embedding throughput on the isolated cluster (2026-10-19).**
+[`scaling.sh`](workloads/protein/scaling.sh), run as the agent, submitted
+nine jobs: three at each node count, interleaved, each on its own exclusive
+allocation and each running inside the Apptainer image. Throughput is
+residues divided by the slowest rank's forward-pass time.
+[`scaling_report.py`](workloads/analysis/scaling_report.py) builds the table
+from the harvested record in
+[`runs/2026-10-19-isolated-cluster/`](runs/2026-10-19-isolated-cluster/).
+
+| Nodes | Runs | Residues/s, mean | Range | Speedup | Efficiency | CPU used of allocation |
+|---|---|---|---|---|---|---|
+| 1 | 3 | 1,889 | 1,886–1,893 | 1.00× | 100% | 99% |
+| 2 | 3 | 3,514 | 3,508–3,526 | 1.86× | 93% | 98% |
+| 3 | 3 | 5,248 | 5,235–5,264 | 2.78× | 93% | 97% |
+
+Every repeat is within 0.4% of its mean. The 7% gap is not communication,
+because embedding ranks never exchange data. Part of it is node speed:
+every 1-node run landed on compute-1, which also beat compute-2 and
+compute-3 by 3–4% in every 3-node run, so efficiency is measured against the
+fastest node. Shards are balanced by residue count, and cost per residue
+varies with sequence length, which probably accounts for the rest. Against
+the first run's table below, which used one vCPU per node, two threads per
+core add 29% at 1 node and 27% at 3.
+
+**The first run, driven by Claude Science (2026-10-15).** Claude Science
+wrote and submitted the jobs, and a human clicked each approval card. The
+run came before the isolation work below, so it ran as the image's default
+user (passwordless sudo), outside any container. It shows the agent doing
+the science. It does not show the agent being contained. Its job scripts,
+logs, per-node timings, Slurm accounting and CloudWatch metrics are in
+[`runs/2026-10-15-claude-science-cpu/`](runs/2026-10-15-claude-science-cpu/).
+The embedding job was one 3-node allocation, with steps on 1, 2 and 3 nodes
+run one after another (53 minutes, one run each):
 
 | Nodes | Slowest node (s) | Residues/s | Speedup | Efficiency |
 |---|---|---|---|---|
 | 1 | 1,693.6 | 1,462 | 1.00× | 100% |
 | 2 | 899.6 | 2,753 | 1.88× | 94% |
 | 3 | 599.1 | 4,134 | 2.83× | 94% |
-
-Sharding by residue count gave every node the same work: 825,545 residues
-each at 3 nodes. The 6% gap is per-node speed. compute-2 was the slowest
-node in both multi-node steps (1,377 residues/s, against 1,404–1,427 on the
-others).
 
 **Enzyme classifier.** 3-node DDP over gloo, trained on the 3-node
 embeddings for 30 epochs in 2.66 s.
@@ -94,26 +119,29 @@ embeddings for 30 epochs in 2.66 s.
 One seed. The split hashes accessions and is not homology-aware, so related
 proteins can land on both sides and accuracy may be optimistic.
 
-**What the accounting caught.** `sacct` showed every embedding step using
-49–50% of its allocated CPU time. Inside a 2-CPU task, `nproc` was 1: the
-job's cgroup held one of each node's two vCPUs, because `slurm.conf` gave
-only `CPUs=2` and Slurm mapped that onto the instance's 1 core × 2 threads
-wrongly. With the topology declared, the same node embedded a fixed
+**What the accounting caught.** In the first run, `sacct` showed every
+embedding step using 49–50% of its allocated CPU time. Inside a 2-CPU task,
+`nproc` was 1: the job's cgroup held one of each node's two vCPUs, because
+`slurm.conf` gave only `CPUs=2` and Slurm mapped that onto the instance's
+1 core × 2 threads wrongly. With the topology declared, the same node embedded a fixed
 300-protein sample at 1,773 residues/s instead of 1,467 (+21%), and
-embedding steps now use about 90% of their allocation. The table above was
-measured at one vCPU per node throughout, so its rows compare fairly with
-each other but sit below what the hardware can do.
+embedding steps use 97–99% of their allocation (top table). The first
+run's table was measured at one vCPU per node throughout, so its rows
+compare fairly with each other but sit below what the hardware can do.
 
 **Isolation, checked on clusters built from code.** `sandbox-check.sh`
 logs in as the agent and tests every property in the table above, on the
 head node and through Slurm on each compute node, inside and outside the
-container. [`runs/2026-10-16-isolation/`](runs/2026-10-16-isolation/) has
-the first full check (53 passes) and the job scripts run as the agent inside
-the container. [`runs/2026-10-16-isolation-after-review/`](runs/2026-10-16-isolation-after-review/)
-is the check after the review's fixes: 59 passes; the EventBridge check
-could not run because the operator's AWS session had expired. The same node
-and data embedded at 1,795.6 residues/s inside the container and 1,773.2 on
-the host.
+container. On the cluster that ran the benchmark above, all 69 checks
+passed ([`sandbox-check.txt`](runs/2026-10-19-isolated-cluster/sandbox-check.txt)).
+They include the proxy refusing plain HTTP and port-80 tunnels, and the
+IPv6 metadata endpoint being unreachable from every node and from inside
+the container. Earlier records:
+[`runs/2026-10-16-isolation/`](runs/2026-10-16-isolation/) (the first full
+check, 53 passes) and
+[`runs/2026-10-16-isolation-after-review/`](runs/2026-10-16-isolation-after-review/)
+(59 passes after the review's fixes). The same node and data embedded at
+1,795.6 residues/s inside the container and 1,773.2 on the host.
 
 **Cost.** Everything above, every cluster built on 2026-10-15 and 16 (9.8
 head-node hours in all), came to $3.25 of AWS usage at on-demand prices.
@@ -146,11 +174,12 @@ written up, with twenty other findings, in the
 ## How it was built
 
 In about eleven hours of commits across 2026-10-15 and 2026-10-16, all on
-`main`. The [work log](docs/worklog.md) has the timeline: scoping against
-the account's constraints, the first deploy, two clusters lost to the idle
-alarm while an agent waited for approval, the first Claude Science run, then
-the isolation work and the review. Commit messages carry the findings as
-they happened.
+`main`, then a follow-up pull request on 2026-10-19. The
+[work log](docs/worklog.md) has the timeline: scoping against the account's
+constraints, the first deploy, two clusters lost to the idle alarm while an
+agent waited for approval, the first Claude Science run, the isolation work
+and the review, and then the tightened proxy and the repeated benchmark.
+Commit messages carry the findings as they happened.
 
 ## Running it
 
