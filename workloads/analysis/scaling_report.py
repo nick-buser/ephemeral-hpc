@@ -104,7 +104,8 @@ def report(jobs: list[Job], cpu: dict[str, float] | None = None) -> str:
         )
         if cpu:
             used = [cpu[j.name] for j in group if j.name in cpu]
-            row += f" | {min(used):.0%}–{max(used):.0%} |" if used else " | n/a |"
+            lo, hi = (f"{min(used):.0%}", f"{max(used):.0%}") if used else ("n/a", "n/a")
+            row += f" | {lo} |" if lo == hi else f" | {lo}–{hi} |"
         else:
             row += " |"
         lines.append(row)

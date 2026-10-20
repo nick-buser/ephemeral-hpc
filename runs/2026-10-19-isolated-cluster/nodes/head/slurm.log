@@ -1,0 +1,84 @@
+[2026-10-19T22:31:54.039] fatal: mkdir(/var/spool/slurmctld): Permission denied
+[2026-10-19T22:33:03.902] error: Configured MailProg is invalid
+[2026-10-19T22:33:03.903] slurmctld version 23.11.4 started on cluster ehpc
+[2026-10-19T22:33:03.905] error:  mpi/pmix_v5: init: (null) [0]: mpi_pmix.c:193: pmi/pmix: can not load PMIx library
+[2026-10-19T22:33:03.905] error: Couldn't load specified plugin name for mpi/pmix_v5: Plugin init() callback failed
+[2026-10-19T22:33:03.905] error: MPI: Cannot create context for mpi/pmix_v5
+[2026-10-19T22:33:03.905] error:  mpi/pmix_v5: init: (null) [0]: mpi_pmix.c:193: pmi/pmix: can not load PMIx library
+[2026-10-19T22:33:03.906] error: Couldn't load specified plugin name for mpi/pmix: Plugin init() callback failed
+[2026-10-19T22:33:03.906] error: MPI: Cannot create context for mpi/pmix
+[2026-10-19T22:33:03.917] accounting_storage/slurmdbd: clusteracct_storage_p_register_ctld: Registering slurmctld at port 6817 with slurmdbd
+[2026-10-19T22:33:04.507] priority/multifactor: _read_last_decay_ran: No last decay (/var/spool/slurmctld/priority_last_decay_ran) to recover
+[2026-10-19T22:33:04.513] error: Could not open node state file /var/spool/slurmctld/node_state: No such file or directory
+[2026-10-19T22:33:04.514] error: NOTE: Trying backup state save file. Information may be lost!
+[2026-10-19T22:33:04.514] No node state file (/var/spool/slurmctld/node_state.old) to recover
+[2026-10-19T22:33:04.514] error: Could not open job state file /var/spool/slurmctld/job_state: No such file or directory
+[2026-10-19T22:33:04.514] error: NOTE: Trying backup state save file. Jobs may be lost!
+[2026-10-19T22:33:04.515] No job state file (/var/spool/slurmctld/job_state.old) to recover
+[2026-10-19T22:33:04.515] select/cons_tres: part_data_create_array: select/cons_tres: preparing for 1 partitions
+[2026-10-19T22:33:04.515] error: Could not open reservation state file /var/spool/slurmctld/resv_state: No such file or directory
+[2026-10-19T22:33:04.515] error: NOTE: Trying backup state save file. Reservations may be lost
+[2026-10-19T22:33:04.515] No reservation state file (/var/spool/slurmctld/resv_state.old) to recover
+[2026-10-19T22:33:04.515] error: Could not open trigger state file /var/spool/slurmctld/trigger_state: No such file or directory
+[2026-10-19T22:33:04.515] error: NOTE: Trying backup state save file. Triggers may be lost!
+[2026-10-19T22:33:04.515] No trigger state file (/var/spool/slurmctld/trigger_state.old) to recover
+[2026-10-19T22:33:04.515] read_slurm_conf: backup_controller not specified
+[2026-10-19T22:33:04.515] Reinitializing job accounting state
+[2026-10-19T22:33:04.515] accounting_storage/slurmdbd: acct_storage_p_flush_jobs_on_cluster: Ending any jobs in accounting that were running when controller went down on
+[2026-10-19T22:33:04.515] select/cons_tres: select_p_reconfigure: select/cons_tres: reconfigure
+[2026-10-19T22:33:04.515] select/cons_tres: part_data_create_array: select/cons_tres: preparing for 1 partitions
+[2026-10-19T22:33:04.516] Running as primary controller
+[2026-10-19T22:33:04.683] error: No fed_mgr state file (/var/spool/slurmctld/fed_mgr_state) to recover
+[2026-10-19T22:38:04.006] error: Could not open job state file /var/spool/slurmctld/job_state: No such file or directory
+[2026-10-19T22:38:04.006] error: NOTE: Trying backup state save file. Jobs may be lost!
+[2026-10-19T22:38:04.006] No job state file (/var/spool/slurmctld/job_state.old) found
+[2026-10-19T22:46:32.536] sched: _slurm_rpc_allocate_resources JobId=1 NodeList=compute-[1-3] usec=369
+[2026-10-19T22:46:32.963] error: slurm_receive_msg [10.42.1.11:53630]: Zero Bytes were transmitted or received
+[2026-10-19T22:46:32.967] error: slurm_receive_msg [10.42.1.12:49700]: Zero Bytes were transmitted or received
+[2026-10-19T22:46:32.973] error: slurm_receive_msg [10.42.1.13:45478]: Zero Bytes were transmitted or received
+[2026-10-19T22:46:32.982] _job_complete: JobId=1 WEXITSTATUS 0
+[2026-10-19T22:46:32.982] _job_complete: JobId=1 done
+[2026-10-19T22:46:33.000] sched: _slurm_rpc_allocate_resources JobId=2 NodeList=compute-[1-3] usec=372
+[2026-10-19T22:46:33.929] _job_complete: JobId=2 WEXITSTATUS 0
+[2026-10-19T22:46:33.929] _job_complete: JobId=2 done
+[2026-10-19T22:46:33.931] error: slurm_send_node_msg: [socket:[39990]] slurm_bufs_sendto(msg_type=SRUN_JOB_COMPLETE) failed: Connection reset by peer
+[2026-10-19T22:46:48.690] _slurm_rpc_submit_batch_job: JobId=3 InitPrio=1 usec=319
+[2026-10-19T22:46:48.697] _slurm_rpc_submit_batch_job: JobId=4 InitPrio=1 usec=1246
+[2026-10-19T22:46:48.703] _slurm_rpc_submit_batch_job: JobId=5 InitPrio=1 usec=287
+[2026-10-19T22:46:48.708] _slurm_rpc_submit_batch_job: JobId=6 InitPrio=1 usec=335
+[2026-10-19T22:46:48.714] _slurm_rpc_submit_batch_job: JobId=7 InitPrio=1 usec=289
+[2026-10-19T22:46:48.719] _slurm_rpc_submit_batch_job: JobId=8 InitPrio=1 usec=289
+[2026-10-19T22:46:48.725] _slurm_rpc_submit_batch_job: JobId=9 InitPrio=1 usec=369
+[2026-10-19T22:46:48.730] _slurm_rpc_submit_batch_job: JobId=10 InitPrio=1 usec=293
+[2026-10-19T22:46:48.736] _slurm_rpc_submit_batch_job: JobId=11 InitPrio=1 usec=395
+[2026-10-19T22:46:49.000] sched: Allocate JobId=3 NodeList=compute-1 #CPUs=2 Partition=cpu
+[2026-10-19T22:46:49.001] sched: Allocate JobId=4 NodeList=compute-[2-3] #CPUs=4 Partition=cpu
+[2026-10-19T22:58:40.124] _job_complete: JobId=4 WEXITSTATUS 0
+[2026-10-19T22:58:40.125] _job_complete: JobId=4 done
+[2026-10-19T23:08:42.133] _job_complete: JobId=3 WEXITSTATUS 0
+[2026-10-19T23:08:42.134] _job_complete: JobId=3 done
+[2026-10-19T23:08:43.000] sched: Allocate JobId=5 NodeList=compute-[1-3] #CPUs=6 Partition=cpu
+[2026-10-19T23:16:38.188] _job_complete: JobId=5 WEXITSTATUS 0
+[2026-10-19T23:16:38.188] _job_complete: JobId=5 done
+[2026-10-19T23:16:39.001] sched: Allocate JobId=6 NodeList=compute-1 #CPUs=2 Partition=cpu
+[2026-10-19T23:16:39.002] sched: Allocate JobId=7 NodeList=compute-[2-3] #CPUs=4 Partition=cpu
+[2026-10-19T23:28:29.422] _job_complete: JobId=7 WEXITSTATUS 0
+[2026-10-19T23:28:29.423] _job_complete: JobId=7 done
+[2026-10-19T23:38:34.310] _job_complete: JobId=6 WEXITSTATUS 0
+[2026-10-19T23:38:34.311] _job_complete: JobId=6 done
+[2026-10-19T23:38:35.001] sched: Allocate JobId=8 NodeList=compute-[1-3] #CPUs=6 Partition=cpu
+[2026-10-19T23:46:31.774] _job_complete: JobId=8 WEXITSTATUS 0
+[2026-10-19T23:46:31.774] _job_complete: JobId=8 done
+[2026-10-19T23:46:32.001] sched: Allocate JobId=9 NodeList=compute-1 #CPUs=2 Partition=cpu
+[2026-10-19T23:46:32.002] sched: Allocate JobId=10 NodeList=compute-[2-3] #CPUs=4 Partition=cpu
+[2026-10-19T23:58:19.297] _job_complete: JobId=10 WEXITSTATUS 0
+[2026-10-19T23:58:19.298] _job_complete: JobId=10 done
+[2026-10-20T00:08:29.843] _job_complete: JobId=9 WEXITSTATUS 0
+[2026-10-20T00:08:29.843] _job_complete: JobId=9 done
+[2026-10-20T00:08:30.002] sched: Allocate JobId=11 NodeList=compute-[1-3] #CPUs=6 Partition=cpu
+[2026-10-20T00:16:27.703] _job_complete: JobId=11 WEXITSTATUS 0
+[2026-10-20T00:16:27.703] _job_complete: JobId=11 done
+[2026-10-19T22:32:59.310] Not running as root. Can't drop supplementary groups
+[2026-10-19T22:32:59.319] accounting_storage/as_mysql: _check_mysql_concat_is_sane: MySQL server version is: 5.5.5-10.11.14-MariaDB-0ubuntu0.24.04.1
+[2026-10-19T22:32:59.319] error: Database settings not recommended values: innodb_buffer_pool_size innodb_lock_wait_timeout
+[2026-10-19T22:32:59.710] slurmdbd version 23.11.4 started

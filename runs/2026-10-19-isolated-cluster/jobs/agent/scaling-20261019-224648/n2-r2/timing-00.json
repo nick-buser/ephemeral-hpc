@@ -1,0 +1,12 @@
+{
+  "rank": 0,
+  "world_size": 2,
+  "host": "compute-2",
+  "device": "cpu",
+  "threads": 2,
+  "model": "esm2_t6_8M_UR50D",
+  "sequences": 3000,
+  "residues": 1238318,
+  "seconds": 705.7,
+  "residues_per_second": 1754.7
+}
